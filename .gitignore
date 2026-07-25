@@ -1,0 +1,14 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+.DS_Store
+coverage.xml
+htmlcov/
+work/

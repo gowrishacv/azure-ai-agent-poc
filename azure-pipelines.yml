@@ -1,0 +1,218 @@
+name: ai-agent-$(Date:yyyyMMdd).$(Rev:r)
+
+trigger:
+  branches:
+    include: [main]
+  paths:
+    exclude: ["docs/**", "*.md"]
+
+pr:
+  branches:
+    include: [main]
+
+parameters:
+  - name: environment
+    displayName: Target environment
+    type: string
+    default: dev
+    values: [dev, prod]
+  - name: apply
+    displayName: Apply infrastructure and deploy application
+    type: boolean
+    default: false
+
+variables:
+  - group: ai-agent-${{ parameters.environment }}
+  - name: terraformVersion
+    value: "1.15.8"
+  - name: pythonVersion
+    value: "3.13"
+  - name: serviceConnection
+    value: "sc-ai-agent-${{ parameters.environment }}"
+  - name: tfvarsFile
+    value: "environments/${{ parameters.environment }}.tfvars"
+
+stages:
+  - stage: Validate
+    displayName: Validate code and infrastructure
+    jobs:
+      - job: Quality
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+          - bash: python -m pip install --upgrade pip && pip install -e ".[dev]"
+            displayName: Install application dependencies
+          - bash: |
+              ruff check app scripts tests
+              pytest -q
+            displayName: Lint and test application
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+          - bash: |
+              terraform -chdir=infra fmt -check -recursive
+              terraform -chdir=infra init -backend=false
+              terraform -chdir=infra validate
+            displayName: Format and validate Terraform
+
+  - stage: Plan
+    displayName: Terraform plan
+    dependsOn: Validate
+    jobs:
+      - job: TerraformPlan
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+          - task: AzureCLI@2
+            displayName: Create reviewed Terraform plan
+            inputs:
+              azureSubscription: $(serviceConnection)
+              addSpnToEnvironment: true
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: infra
+              inlineScript: |
+                set -euo pipefail
+                export ARM_CLIENT_ID="$servicePrincipalId"
+                export ARM_TENANT_ID="$tenantId"
+                export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                export ARM_OIDC_TOKEN="$idToken"
+                export ARM_USE_OIDC=true
+                terraform init \
+                  -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                  -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                  -backend-config="container_name=$(tfStateContainer)" \
+                  -backend-config="key=ai-agent/${{ parameters.environment }}.tfstate" \
+                  -backend-config="use_azuread_auth=true"
+                terraform plan \
+                  -var-file="$(tfvarsFile)" \
+                  -out="$(Build.ArtifactStagingDirectory)/${{ parameters.environment }}.tfplan"
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: tfplan
+            displayName: Publish immutable plan
+
+  - stage: Apply
+    displayName: Apply approved plan
+    dependsOn: Plan
+    condition: and(succeeded(), eq('${{ parameters.apply }}', true), ne(variables['Build.Reason'], 'PullRequest'))
+    lockBehavior: sequential
+    jobs:
+      - deployment: Deploy
+        displayName: Terraform apply
+        environment: ai-agent-${{ parameters.environment }}
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - download: current
+                  artifact: tfplan
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+                - task: AzureCLI@2
+                  name: apply
+                  displayName: Apply and export deployment values
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    addSpnToEnvironment: true
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: infra
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_USE_OIDC=true
+                      terraform init \
+                        -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                        -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                        -backend-config="container_name=$(tfStateContainer)" \
+                        -backend-config="key=ai-agent/${{ parameters.environment }}.tfstate" \
+                        -backend-config="use_azuread_auth=true"
+                      terraform apply -auto-approve "$(Pipeline.Workspace)/tfplan/${{ parameters.environment }}.tfplan"
+
+  - stage: BuildDeploy
+    displayName: Build, deploy, index, and smoke test
+    dependsOn: Apply
+    condition: succeeded()
+    jobs:
+      - deployment: Application
+        environment: ai-agent-${{ parameters.environment }}
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+                - task: AzureCLI@2
+                  displayName: Build image, deploy, index, and smoke test
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    addSpnToEnvironment: true
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: infra
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_USE_OIDC=true
+                      terraform init \
+                        -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                        -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                        -backend-config="container_name=$(tfStateContainer)" \
+                        -backend-config="key=ai-agent/${{ parameters.environment }}.tfstate" \
+                        -backend-config="use_azuread_auth=true"
+
+                      resource_group="$(terraform output -raw resource_group_name)"
+                      registry="$(terraform output -raw container_registry_name)"
+                      container_app="$(terraform output -raw container_app_name)"
+                      api_url="$(terraform output -raw container_app_url)"
+                      image="${registry}.azurecr.io/ai-agent:$(Build.BuildId)"
+
+                      cd "$(Build.SourcesDirectory)"
+                      az acr build --registry "$registry" --image "ai-agent:$(Build.BuildId)" .
+                      az containerapp update \
+                        --resource-group "$resource_group" \
+                        --name "$container_app" \
+                        --image "$image"
+
+                      if [[ "$(terraform -chdir=infra output -raw private_networking_enabled)" == "false" ]]; then
+                        pip install .
+                        export AZURE_AI_ENDPOINT="$(terraform -chdir=infra output -raw foundry_endpoint)"
+                        export AZURE_OPENAI_CHAT_DEPLOYMENT="$(terraform -chdir=infra output -raw chat_deployment_name)"
+                        export AZURE_OPENAI_EMBEDDING_DEPLOYMENT="$(terraform -chdir=infra output -raw embedding_deployment_name)"
+                        export AZURE_SEARCH_ENDPOINT="$(terraform -chdir=infra output -raw search_endpoint)"
+                        export AZURE_SEARCH_INDEX="$(terraform -chdir=infra output -raw search_index_name)"
+                        python scripts/index_documents.py
+                      else
+                        echo "Private profile: run indexing from a VNet-connected agent."
+                      fi
+
+                      for attempt in {1..20}; do
+                        if curl --fail --silent --show-error "$api_url/health"; then
+                          echo
+                          echo "Deployment healthy at $api_url"
+                          exit 0
+                        fi
+                        sleep 10
+                      done
+                      echo "Smoke test failed."
+                      exit 1

@@ -1,0 +1,10 @@
+workload                  = "aiagent"
+environment               = "prod"
+location                  = "swedencentral"
+owner                     = "platform-team"
+enable_private_networking = true
+container_min_replicas    = 1
+container_max_replicas    = 5
+log_daily_quota_gb        = 2
+allowed_cors_origins      = ["https://app.example.com"]
+
