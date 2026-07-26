@@ -150,11 +150,11 @@ STATE_SCOPE="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${STATE_RESOURCE_G
 
 # Use ARM directly instead of `az storage account show`. Some Azure CLI
 # releases select the unsupported Microsoft.Storage API version 2025-08-01.
-# The stable 2025-04-01 version is supported by Azure Resource Manager.
+# The stable 2025-01-01 version is supported by Azure Resource Manager.
 STATE_SCOPE="$(
   az rest \
     --method get \
-    --url "https://management.azure.com${STATE_SCOPE}?api-version=2025-04-01" \
+    --url "https://management.azure.com${STATE_SCOPE}?api-version=2025-01-01" \
     --query id \
     --output tsv
 )"
@@ -382,7 +382,7 @@ ensure_federated_credential() {
       --output json
   )"
 
-  if [[ "$existing_json" != "null" && "$existing_json" != "[]" ]]; then
+  if [[ -n "$existing_json" && "$existing_json" != "null" && "$existing_json" != "[]" ]]; then
     local existing_issuer
     local existing_subject
     existing_issuer="$(jq -r '.issuer // empty' <<<"$existing_json")"

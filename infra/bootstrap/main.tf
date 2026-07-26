@@ -42,15 +42,9 @@ resource "azapi_resource" "state" {
   }
 }
 
-data "azapi_resource" "blob_service" {
-  type      = "Microsoft.Storage/storageAccounts/blobServices@2025-01-01"
-  parent_id = azapi_resource.state.id
-  name      = "default"
-}
-
 resource "azapi_resource" "container" {
   type      = "Microsoft.Storage/storageAccounts/blobServices/containers@2025-01-01"
-  parent_id = data.azapi_resource.blob_service.id
+  parent_id = "${azapi_resource.state.id}/blobServices/default"
   name      = "tfstate"
 
   body = {
