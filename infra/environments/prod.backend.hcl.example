@@ -1,0 +1,6 @@
+resource_group_name  = "rg-terraform-state"
+storage_account_name = "sttfstateREPLACE"
+container_name       = "tfstate"
+key                  = "ai-agent/prod.tfstate"
+use_azuread_auth     = true
+
