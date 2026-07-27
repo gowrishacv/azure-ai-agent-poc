@@ -149,8 +149,8 @@ PROJECT_ID="$(
 STATE_SCOPE="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${STATE_RESOURCE_GROUP}/providers/Microsoft.Storage/storageAccounts/${STATE_STORAGE_ACCOUNT}"
 
 # Use ARM directly instead of `az storage account show`. Some Azure CLI
-# releases select the unsupported Microsoft.Storage API version 2025-08-01.
-# The stable 2025-01-01 version is supported by Azure Resource Manager.
+# releases select an unsupported Microsoft.Storage API version. The stable
+# 2025-01-01 version is also used by the Terraform bootstrap.
 STATE_SCOPE="$(
   az rest \
     --method get \

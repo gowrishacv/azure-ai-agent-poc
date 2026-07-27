@@ -12,3 +12,7 @@ __pycache__/
 coverage.xml
 htmlcov/
 work/
+outputs/
+dist/
+build/
+*.zip

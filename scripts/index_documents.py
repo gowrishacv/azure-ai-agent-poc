@@ -4,9 +4,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
@@ -32,7 +29,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    credential = DefaultAzureCredential(managed_identity_client_id=os.getenv("AZURE_CLIENT_ID"))
+    credential = DefaultAzureCredential(
+        managed_identity_client_id=os.getenv("AZURE_CLIENT_ID")
+    )
     ai = AzureOpenAI(
         azure_endpoint=os.environ["AZURE_AI_ENDPOINT"],
         azure_ad_token_provider=get_bearer_token_provider(
@@ -60,7 +59,11 @@ def main() -> None:
         ],
         vector_search=VectorSearch(
             algorithms=[HnswAlgorithmConfiguration(name="hnsw")],
-            profiles=[VectorSearchProfile(name="default", algorithm_configuration_name="hnsw")],
+            profiles=[
+                VectorSearchProfile(
+                    name="default", algorithm_configuration_name="hnsw"
+                )
+            ],
         ),
     )
     SearchIndexClient(search_endpoint, credential).create_or_update_index(index)

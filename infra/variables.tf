@@ -35,13 +35,13 @@ variable "owner" {
 variable "chat_model_name" {
   description = "Model catalog name available in the selected region."
   type        = string
-  default     = "gpt-4.1-mini"
+  default     = "gpt-5-mini"
 }
 
 variable "chat_model_version" {
   description = "Model version available in the selected region."
   type        = string
-  default     = "2025-04-14"
+  default     = "2025-08-07"
 }
 
 variable "chat_model_capacity" {

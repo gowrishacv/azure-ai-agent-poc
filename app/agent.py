@@ -91,8 +91,7 @@ class AgentService:
         )
         response = await self.openai.chat.completions.create(
             model=self.settings.azure_openai_chat_deployment,
-            temperature=0.1,
-            max_tokens=700,
+            max_completion_tokens=700,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {

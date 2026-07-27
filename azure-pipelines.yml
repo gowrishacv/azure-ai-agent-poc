@@ -84,15 +84,18 @@ stages:
                 export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
                 export ARM_OIDC_TOKEN="$idToken"
                 export ARM_USE_OIDC=true
+                "$(Build.SourcesDirectory)/scripts/register-azure-resource-providers.sh"
                 terraform init \
                   -backend-config="resource_group_name=$(tfStateResourceGroup)" \
                   -backend-config="storage_account_name=$(tfStateStorageAccount)" \
                   -backend-config="container_name=$(tfStateContainer)" \
                   -backend-config="key=ai-agent/${{ parameters.environment }}.tfstate" \
                   -backend-config="use_azuread_auth=true"
+                plan_file="$(Build.ArtifactStagingDirectory)/${{ parameters.environment }}.tfplan"
                 terraform plan \
                   -var-file="$(tfvarsFile)" \
-                  -out="$(Build.ArtifactStagingDirectory)/${{ parameters.environment }}.tfplan"
+                  -out="$plan_file"
+                "$(Build.SourcesDirectory)/scripts/check-soft-deleted-foundry.sh" "$plan_file"
           - publish: $(Build.ArtifactStagingDirectory)
             artifact: tfplan
             displayName: Publish immutable plan

@@ -60,7 +60,7 @@ resource "azurerm_cognitive_deployment" "embedding" {
   }
 
   sku {
-    name     = "Standard"
+    name     = "GlobalStandard"
     capacity = 10
   }
 }
