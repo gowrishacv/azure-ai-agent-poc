@@ -1,5 +1,7 @@
 # Production-style Azure AI Agent POC
 
+![Production-style Azure AI agent architecture](docs/images/azure-ai-agent-platform-architecture.png)
+
 A practical, keyless Retrieval-Augmented Generation (RAG) platform built with
 Microsoft Foundry, Azure AI Search, Container Apps, Terraform, and Azure DevOps.
 It is intentionally small enough for a demo while preserving production
