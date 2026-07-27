@@ -57,6 +57,7 @@ the reasons behind these choices.
 ```text
 app/                    FastAPI RAG agent
 data/                   Safe sample knowledge
+compliance/             GDPR/DORA mappings and human-review templates
 docs/                   Architecture, security, cost, and article material
 infra/
   bootstrap/            One-time remote-state storage
@@ -64,7 +65,7 @@ infra/
   modules/              AI, application, identity, network, observability
 scripts/                Idempotent search-index loader
 tests/                  API tests
-azure-pipelines.yml     Validate → Plan → Apply → Build/Deploy/Test
+azure-pipelines.yml     Validate → Plan → Apply → Regulatory Evidence → Deploy
 ```
 
 ## Prerequisites
@@ -247,6 +248,7 @@ gh repo create azure-ai-agent-poc --public --source=. --remote=origin --push
 - [Security controls and production gaps](docs/security.md)
 - [Cost controls](docs/cost.md)
 - [Deployment runbook](docs/deployment.md)
+- [GDPR/DORA regulatory evidence](docs/regulatory-evidence.md)
 - [Architecture decisions](docs/decisions/adr-001-platform-shape.md)
 - [Medium and LinkedIn material](docs/article-kit.md)
 - [Official technical references](docs/references.md)

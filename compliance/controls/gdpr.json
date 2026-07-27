@@ -1,0 +1,89 @@
+{
+  "regulation": "GDPR",
+  "official_source": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+  "scope_note": "These controls collect technical design evidence only. Applicability and legal compliance require review by the controller, data protection officer, or qualified counsel.",
+  "controls": [
+    {
+      "id": "GDPR-25",
+      "article": "Article 25",
+      "title": "Data protection by design and by default",
+      "objective": "Use identity-based access and restrictive defaults as design evidence.",
+      "manual_review_required": false,
+      "checks": [
+        {
+          "id": "GDPR-25-IDENTITY",
+          "description": "The application uses a user-assigned managed identity.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/application/main.tf",
+          "pattern": "type\\s*=\\s*\"UserAssigned\""
+        },
+        {
+          "id": "GDPR-25-FOUNDRY-KEYLESS",
+          "description": "Microsoft Foundry local authentication is disabled.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/ai/main.tf",
+          "pattern": "local_auth_enabled\\s*=\\s*false"
+        },
+        {
+          "id": "GDPR-25-SEARCH-KEYLESS",
+          "description": "Azure AI Search local authentication is disabled.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/ai/main.tf",
+          "pattern": "local_authentication_enabled\\s*=\\s*false"
+        }
+      ]
+    },
+    {
+      "id": "GDPR-32",
+      "article": "Article 32",
+      "title": "Security of processing",
+      "objective": "Collect evidence for encrypted transport, access control, and monitoring.",
+      "manual_review_required": false,
+      "checks": [
+        {
+          "id": "GDPR-32-HTTPS",
+          "description": "Container Apps rejects insecure ingress.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/application/main.tf",
+          "pattern": "allow_insecure_connections\\s*=\\s*false"
+        },
+        {
+          "id": "GDPR-32-ACR",
+          "description": "Container Registry administrative credentials are disabled.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/application/main.tf",
+          "pattern": "admin_enabled\\s*=\\s*false"
+        },
+        {
+          "id": "GDPR-32-MONITORING",
+          "description": "Application Insights is provisioned for operational telemetry.",
+          "severity": "high",
+          "kind": "pattern_present",
+          "path": "infra/modules/observability/main.tf",
+          "pattern": "resource\\s+\"azurerm_application_insights\""
+        }
+      ]
+    },
+    {
+      "id": "GDPR-35",
+      "article": "Article 35",
+      "title": "Data protection impact assessment",
+      "objective": "Require a DPIA decision record before processing personal data that may create high risk.",
+      "manual_review_required": true,
+      "checks": [
+        {
+          "id": "GDPR-35-TEMPLATE",
+          "description": "A version-controlled DPIA assessment template exists.",
+          "severity": "high",
+          "kind": "file_exists",
+          "path": "compliance/dpia-template.md"
+        }
+      ]
+    }
+  ]
+}

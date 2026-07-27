@@ -145,9 +145,65 @@ stages:
                         -backend-config="use_azuread_auth=true"
                       terraform apply -auto-approve "$(Pipeline.Workspace)/tfplan/${{ parameters.environment }}.tfplan"
 
+  - stage: RegulatoryEvidence
+    displayName: GDPR/DORA regulatory evidence
+    dependsOn: Apply
+    condition: succeeded()
+    jobs:
+      - job: ComplianceReview
+        displayName: Deterministic controls and advisory AI review
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - bash: mkdir -p "$(Build.ArtifactStagingDirectory)/regulatory-evidence"
+            displayName: Prepare regulatory evidence artifact
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+          - bash: python -m pip install --upgrade pip && pip install .
+            displayName: Install evidence scanner dependencies
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+          - task: AzureCLI@2
+            displayName: Generate GDPR/DORA evidence
+            inputs:
+              azureSubscription: $(serviceConnection)
+              addSpnToEnvironment: true
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: infra
+              inlineScript: |
+                set -euo pipefail
+                export ARM_CLIENT_ID="$servicePrincipalId"
+                export ARM_TENANT_ID="$tenantId"
+                export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                export ARM_OIDC_TOKEN="$idToken"
+                export ARM_USE_OIDC=true
+                terraform init \
+                  -backend-config="resource_group_name=$(tfStateResourceGroup)" \
+                  -backend-config="storage_account_name=$(tfStateStorageAccount)" \
+                  -backend-config="container_name=$(tfStateContainer)" \
+                  -backend-config="key=ai-agent/${{ parameters.environment }}.tfstate" \
+                  -backend-config="use_azuread_auth=true"
+
+                export AZURE_AI_ENDPOINT="$(terraform output -raw foundry_endpoint)"
+                export AZURE_OPENAI_CHAT_DEPLOYMENT="$(terraform output -raw chat_deployment_name)"
+                python "$(Build.SourcesDirectory)/scripts/regulatory_evidence.py" \
+                  --repository-root "$(Build.SourcesDirectory)" \
+                  --output-dir "$(Build.ArtifactStagingDirectory)/regulatory-evidence" \
+                  --ai \
+                  --fail-on-critical
+          - task: PublishPipelineArtifact@1
+            displayName: Publish regulatory evidence
+            condition: always()
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)/regulatory-evidence
+              artifact: regulatory-evidence-${{ parameters.environment }}
+
   - stage: BuildDeploy
     displayName: Build, deploy, index, and smoke test
-    dependsOn: Apply
+    dependsOn: RegulatoryEvidence
     condition: succeeded()
     jobs:
       - deployment: Application

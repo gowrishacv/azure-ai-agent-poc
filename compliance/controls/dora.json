@@ -1,0 +1,81 @@
+{
+  "regulation": "DORA",
+  "official_source": "https://eur-lex.europa.eu/eli/reg/2022/2554/oj",
+  "scope_note": "DORA concerns digital operational resilience in the financial sector. An authorised business or legal owner must determine whether this workload and organisation are in scope.",
+  "controls": [
+    {
+      "id": "DORA-9",
+      "article": "Article 9",
+      "title": "Protection and prevention",
+      "objective": "Collect design evidence for access control and protected service authentication.",
+      "manual_review_required": false,
+      "checks": [
+        {
+          "id": "DORA-9-RBAC",
+          "description": "The application receives explicit Azure RBAC assignments.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/ai/main.tf",
+          "pattern": "role_definition_name\\s*=\\s*\"Cognitive Services OpenAI User\""
+        },
+        {
+          "id": "DORA-9-KEYVAULT",
+          "description": "Key Vault uses Azure RBAC authorization.",
+          "severity": "critical",
+          "kind": "pattern_present",
+          "path": "infra/modules/identity/main.tf",
+          "pattern": "rbac_authorization_enabled\\s*=\\s*true"
+        }
+      ]
+    },
+    {
+      "id": "DORA-10",
+      "article": "Article 10",
+      "title": "Detection",
+      "objective": "Collect design evidence for health detection and central telemetry.",
+      "manual_review_required": false,
+      "checks": [
+        {
+          "id": "DORA-10-LIVENESS",
+          "description": "The application defines a liveness probe.",
+          "severity": "high",
+          "kind": "pattern_present",
+          "path": "infra/modules/application/main.tf",
+          "pattern": "liveness_probe\\s*\\{"
+        },
+        {
+          "id": "DORA-10-READINESS",
+          "description": "The application defines a readiness probe.",
+          "severity": "high",
+          "kind": "pattern_present",
+          "path": "infra/modules/application/main.tf",
+          "pattern": "readiness_probe\\s*\\{"
+        },
+        {
+          "id": "DORA-10-LOGS",
+          "description": "A Log Analytics workspace is provisioned.",
+          "severity": "high",
+          "kind": "pattern_present",
+          "path": "infra/modules/observability/main.tf",
+          "pattern": "resource\\s+\"azurerm_log_analytics_workspace\""
+        }
+      ]
+    },
+    {
+      "id": "DORA-11",
+      "article": "Article 11",
+      "title": "Response and recovery",
+      "objective": "Require documented response, recovery, ownership, and exercise evidence.",
+      "manual_review_required": true,
+      "checks": [
+        {
+          "id": "DORA-11-RUNBOOK",
+          "description": "A version-controlled operational-resilience runbook exists.",
+          "severity": "high",
+          "kind": "file_exists",
+          "path": "compliance/operational-resilience.md"
+        }
+      ]
+    }
+  ]
+}
