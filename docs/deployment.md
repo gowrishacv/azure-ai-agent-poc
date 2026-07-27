@@ -7,6 +7,12 @@ Foundry catalog. If a deployment returns `SKUNotAvailable` or a quota error,
 change the region/model values in the environment tfvars; do not silently
 replace the intended model in the pipeline.
 
+The application and indexing script use the account's Azure OpenAI data-plane
+endpoint (`https://<account>.openai.azure.com/`) for chat and embeddings. New
+model deployments can take several minutes to become available on that
+endpoint, so the indexing script retries only `DeploymentNotFound` responses
+for a bounded period.
+
 ## 2. Register providers
 
 Register these resource providers once per subscription:

@@ -3,7 +3,9 @@
 import argparse
 import json
 import os
+import time
 from pathlib import Path
+from typing import Any
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
@@ -18,13 +20,55 @@ from azure.search.documents.indexes.models import (
     VectorSearch,
     VectorSearchProfile,
 )
-from openai import AzureOpenAI
+from openai import AzureOpenAI, NotFoundError
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", default="data/sample-documents.json")
     return parser.parse_args()
+
+
+def _is_deployment_not_found(error: NotFoundError) -> bool:
+    body = error.body if isinstance(error.body, dict) else {}
+    nested_error = body.get("error")
+    nested_code = nested_error.get("code") if isinstance(nested_error, dict) else None
+    return error.status_code == 404 and (
+        body.get("code") == "DeploymentNotFound" or nested_code == "DeploymentNotFound"
+    )
+
+
+def create_embedding_with_retry(
+    ai: AzureOpenAI,
+    *,
+    deployment: str,
+    content: str,
+    dimensions: int,
+) -> Any:
+    attempts = int(os.getenv("AZURE_OPENAI_DEPLOYMENT_RETRY_ATTEMPTS", "20"))
+    delay_seconds = float(os.getenv("AZURE_OPENAI_DEPLOYMENT_RETRY_DELAY_SECONDS", "15"))
+    if attempts < 1:
+        raise ValueError("AZURE_OPENAI_DEPLOYMENT_RETRY_ATTEMPTS must be at least 1")
+    if delay_seconds < 0:
+        raise ValueError("AZURE_OPENAI_DEPLOYMENT_RETRY_DELAY_SECONDS cannot be negative")
+
+    for attempt in range(1, attempts + 1):
+        try:
+            return ai.embeddings.create(
+                model=deployment,
+                input=content,
+                dimensions=dimensions,
+            )
+        except NotFoundError as error:
+            if not _is_deployment_not_found(error) or attempt == attempts:
+                raise
+            print(
+                f"Embedding deployment {deployment!r} is not ready "
+                f"(attempt {attempt}/{attempts}); retrying in {delay_seconds:g}s."
+            )
+            time.sleep(delay_seconds)
+
+    raise RuntimeError("Embedding deployment retry loop ended unexpectedly")
 
 
 def main() -> None:
@@ -70,9 +114,10 @@ def main() -> None:
 
     source_documents = json.loads(Path(args.data).read_text(encoding="utf-8"))
     for document in source_documents:
-        result = ai.embeddings.create(
-            model=os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"],
-            input=document["content"],
+        result = create_embedding_with_retry(
+            ai,
+            deployment=os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"],
+            content=document["content"],
             dimensions=dimensions,
         )
         document["content_vector"] = result.data[0].embedding

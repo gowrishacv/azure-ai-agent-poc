@@ -3,7 +3,8 @@ output "foundry_account_name" {
 }
 
 output "foundry_endpoint" {
-  value = azurerm_cognitive_account.foundry.endpoint
+  description = "Azure OpenAI data-plane endpoint used for chat and embeddings."
+  value       = "https://${azurerm_cognitive_account.foundry.name}.openai.azure.com/"
 }
 
 output "foundry_project_name" {
@@ -25,4 +26,3 @@ output "search_endpoint" {
 output "search_service_name" {
   value = azurerm_search_service.this.name
 }
-
