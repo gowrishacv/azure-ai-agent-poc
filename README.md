@@ -7,6 +7,9 @@ patterns: managed identity, Azure RBAC, immutable Terraform plans, deployment
 approvals, bounded scaling, health probes, telemetry, and optional private
 networking.
 
+![Uploading Gemini_Generated_Image_5v4xfr5v4xfr5v4x.png…]()
+
+
 Suggested GitHub repository name: **`azure-ai-agent-poc`**
 
 > This is a reference POC, not a turnkey production system. The default API is
