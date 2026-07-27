@@ -26,6 +26,40 @@ for provider in \
 done
 ```
 
+The Azure DevOps Plan stage also performs this registration idempotently. It
+waits until each provider reaches `Registered` before creating the reviewed
+Terraform plan.
+
+## Recover from a soft-deleted Foundry account
+
+Microsoft Foundry accounts use soft delete. Recreating a Terraform-managed
+account with the same name fails with `FlagMustBeSetForRestore` while the old
+account remains recoverable.
+
+Confirm the exact deleted account before changing it:
+
+```bash
+az cognitiveservices account show-deleted \
+  --name "<account-name>" \
+  --resource-group "<original-resource-group>" \
+  --location "<location>" \
+  --output table
+```
+
+If the deleted account and its data are no longer required, permanently purge
+it:
+
+```bash
+az cognitiveservices account purge \
+  --name "<account-name>" \
+  --resource-group "<original-resource-group>" \
+  --location "<location>"
+```
+
+Purging cannot be undone. The pipeline checks the reviewed Terraform plan for
+this conflict and prints the exact purge command, but it never purges
+automatically.
+
 ## 3. Bootstrap state
 
 Apply `infra/bootstrap`. Grant each pipeline WIF identity `Storage Blob Data
