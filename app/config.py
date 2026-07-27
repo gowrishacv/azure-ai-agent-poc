@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     azure_ai_project_name: str = "local-project"
     azure_openai_chat_deployment: str = "chat"
     azure_openai_embedding_deployment: str = "embedding"
-    azure_openai_api_version: str = "2025-04-01-preview"
     azure_search_endpoint: str = "https://example.search.windows.net"
     azure_search_index: str = "aiagent-knowledge"
     azure_key_vault_uri: str | None = None
@@ -32,4 +31,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

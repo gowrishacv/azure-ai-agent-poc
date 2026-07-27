@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import DefaultAzureCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
@@ -20,7 +20,9 @@ from azure.search.documents.indexes.models import (
     VectorSearch,
     VectorSearchProfile,
 )
-from openai import AzureOpenAI, NotFoundError
+from openai import NotFoundError, OpenAI
+
+from app.openai_client import create_openai_client
 
 
 def parse_args() -> argparse.Namespace:
@@ -39,7 +41,7 @@ def _is_deployment_not_found(error: NotFoundError) -> bool:
 
 
 def create_embedding_with_retry(
-    ai: AzureOpenAI,
+    ai: OpenAI,
     *,
     deployment: str,
     content: str,
@@ -76,12 +78,9 @@ def main() -> None:
     credential = DefaultAzureCredential(
         managed_identity_client_id=os.getenv("AZURE_CLIENT_ID")
     )
-    ai = AzureOpenAI(
-        azure_endpoint=os.environ["AZURE_AI_ENDPOINT"],
-        azure_ad_token_provider=get_bearer_token_provider(
-            credential, "https://cognitiveservices.azure.com/.default"
-        ),
-        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2025-04-01-preview"),
+    ai = create_openai_client(
+        os.environ["AZURE_AI_ENDPOINT"],
+        credential,
     )
     search_endpoint = os.environ["AZURE_SEARCH_ENDPOINT"]
     index_name = os.environ["AZURE_SEARCH_INDEX"]

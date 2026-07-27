@@ -2,13 +2,12 @@ import logging
 from dataclasses import dataclass
 
 from azure.core.credentials import TokenCredential
-from azure.identity import get_bearer_token_provider
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import VectorizedQuery
-from openai import AsyncAzureOpenAI
 
 from app.config import Settings
 from app.models import AskResponse, Citation
+from app.openai_client import create_async_openai_client
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +29,9 @@ class RetrievedDocument:
 class AgentService:
     def __init__(self, settings: Settings, credential: TokenCredential) -> None:
         self.settings = settings
-        self.openai = AsyncAzureOpenAI(
-            azure_endpoint=settings.azure_ai_endpoint,
-            azure_ad_token_provider=get_bearer_token_provider(
-                credential, "https://cognitiveservices.azure.com/.default"
-            ),
-            api_version=settings.azure_openai_api_version,
+        self.openai = create_async_openai_client(
+            settings.azure_ai_endpoint,
+            credential,
         )
         self.search = SearchClient(
             endpoint=settings.azure_search_endpoint,
