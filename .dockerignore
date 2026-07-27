@@ -6,4 +6,5 @@ infra
 docs
 tests
 *.md
+!README.md
 
