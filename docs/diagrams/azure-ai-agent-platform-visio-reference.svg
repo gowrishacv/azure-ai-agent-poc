@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <style>
+      .title{font:700 34px "Segoe UI",Arial,sans-serif;fill:#172033}
+      .subtitle{font:400 17px "Segoe UI",Arial,sans-serif;fill:#5c667a}
+      .section{font:700 18px "Segoe UI",Arial,sans-serif;fill:#26344d}
+      .node-title{font:700 17px "Segoe UI",Arial,sans-serif;fill:#172033;text-anchor:middle}
+      .node-sub{font:400 13px "Segoe UI",Arial,sans-serif;fill:#5c667a;text-anchor:middle}
+      .badge{font:700 17px "Segoe UI",Arial,sans-serif;fill:#fff;text-anchor:middle}
+      .label{font:600 12px "Segoe UI",Arial,sans-serif;fill:#526078}
+      .small{font:400 12px "Segoe UI",Arial,sans-serif;fill:#68758b}
+      .card{fill:#fff;stroke:#d8e0ea;stroke-width:1.5;rx:14;filter:url(#shadow)}
+      .line{fill:none;stroke:#1877bd;stroke-width:2.4;marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#7b61a8;stroke-width:2;stroke-dasharray:7 6;marker-end:url(#arrowPurple)}
+    </style>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#172033" flood-opacity=".12"/>
+    </filter>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#1877bd"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#7b61a8"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f7f9fc"/>
+  <text x="60" y="62" class="title">Production-style Azure AI Agent POC</text>
+  <text x="60" y="92" class="subtitle">Deployment, identity, grounded RAG, observability, and regulatory evidence</text>
+
+  <rect x="60" y="125" width="1480" height="210" rx="20" fill="#f2eff9" stroke="#d9ceeb" stroke-width="1.5"/>
+  <text x="88" y="160" class="section">1  Delivery and governance</text>
+
+  <g id="azure-devops">
+    <rect x="95" y="185" width="210" height="115" class="card"/>
+    <circle cx="200" cy="220" r="24" fill="#0078d4"/>
+    <text x="200" y="226" class="badge">ADO</text>
+    <text x="200" y="263" class="node-title">Azure DevOps</text>
+    <text x="200" y="284" class="node-sub">Repository + pipeline</text>
+  </g>
+  <g id="terraform">
+    <rect x="365" y="185" width="210" height="115" class="card"/>
+    <circle cx="470" cy="220" r="24" fill="#7b42bc"/>
+    <text x="470" y="226" class="badge">TF</text>
+    <text x="470" y="263" class="node-title">Terraform</text>
+    <text x="470" y="284" class="node-sub">Plan artifact + apply</text>
+  </g>
+  <g id="wif">
+    <rect x="635" y="185" width="210" height="115" class="card"/>
+    <circle cx="740" cy="220" r="24" fill="#00a4ef"/>
+    <text x="740" y="226" class="badge">WIF</text>
+    <text x="740" y="263" class="node-title">Workload identity</text>
+    <text x="740" y="284" class="node-sub">Federation; no secret</text>
+  </g>
+  <g id="regulatory-evidence">
+    <rect x="905" y="185" width="240" height="115" class="card"/>
+    <circle cx="1025" cy="220" r="24" fill="#6b4fa1"/>
+    <text x="1025" y="226" class="badge">EU</text>
+    <text x="1025" y="263" class="node-title">GDPR / DORA evidence</text>
+    <text x="1025" y="284" class="node-sub">Deterministic gate + AI review</text>
+  </g>
+  <g id="evidence-artifacts">
+    <rect x="1205" y="185" width="270" height="115" class="card"/>
+    <circle cx="1340" cy="220" r="24" fill="#3b8f6a"/>
+    <text x="1340" y="226" class="badge">EV</text>
+    <text x="1340" y="263" class="node-title">Evidence artifacts</text>
+    <text x="1340" y="284" class="node-sub">Markdown + JSON + SHA-256</text>
+  </g>
+  <path d="M305 242 H355" class="line"/>
+  <path d="M575 242 H625" class="line"/>
+  <path d="M845 242 H895" class="line"/>
+  <path d="M1145 242 H1195" class="line"/>
+
+  <rect x="60" y="370" width="1480" height="540" rx="22" fill="#fff" stroke="#78b9e6" stroke-width="2"/>
+  <rect x="60" y="370" width="1480" height="48" rx="22" fill="#eaf5fc"/>
+  <rect x="60" y="398" width="1480" height="20" fill="#eaf5fc"/>
+  <text x="88" y="402" class="section">2  Azure subscription / resource group: rg-aiagent-&lt;environment&gt;-&lt;suffix&gt;</text>
+
+  <g id="client">
+    <rect x="100" y="500" width="190" height="120" class="card"/>
+    <circle cx="195" cy="538" r="25" fill="#394b64"/>
+    <text x="195" y="544" class="badge">UI</text>
+    <text x="195" y="580" class="node-title">Client</text>
+    <text x="195" y="601" class="node-sub">Browser or API caller</text>
+  </g>
+  <g id="container-apps">
+    <rect x="360" y="470" width="265" height="180" class="card"/>
+    <circle cx="492" cy="512" r="28" fill="#0078d4"/>
+    <text x="492" y="518" class="badge">CA</text>
+    <text x="492" y="558" class="node-title">Azure Container Apps</text>
+    <text x="492" y="581" class="node-sub">FastAPI RAG agent</text>
+    <text x="492" y="605" class="node-sub">/health  •  /ask</text>
+    <rect x="406" y="620" width="172" height="22" rx="11" fill="#e8f4fb"/>
+    <text x="492" y="636" class="label" text-anchor="middle">Consumption: 0–2 replicas</text>
+  </g>
+  <g id="managed-identity">
+    <rect x="680" y="535" width="200" height="52" rx="26" fill="#e8f4fb" stroke="#88c5eb"/>
+    <circle cx="710" cy="561" r="16" fill="#00a4ef"/>
+    <text x="710" y="566" class="badge" font-size="11">ID</text>
+    <text x="790" y="558" class="node-title" font-size="15">Managed identity</text>
+    <text x="790" y="577" class="node-sub">Azure RBAC</text>
+  </g>
+  <g id="foundry">
+    <rect x="945" y="450" width="245" height="145" class="card"/>
+    <circle cx="1068" cy="489" r="27" fill="#6347a5"/>
+    <text x="1068" y="495" class="badge">AI</text>
+    <text x="1068" y="534" class="node-title">Microsoft Foundry</text>
+    <text x="1068" y="557" class="node-sub">Project + chat + embeddings</text>
+    <text x="1068" y="578" class="node-sub">Local authentication disabled</text>
+  </g>
+  <g id="ai-search">
+    <rect x="945" y="660" width="245" height="145" class="card"/>
+    <circle cx="1068" cy="699" r="27" fill="#0078d4"/>
+    <text x="1068" y="705" class="badge">SR</text>
+    <text x="1068" y="744" class="node-title">Azure AI Search</text>
+    <text x="1068" y="767" class="node-sub">Vector index + citations</text>
+    <text x="1068" y="788" class="node-sub">Local authentication disabled</text>
+  </g>
+  <g id="key-vault">
+    <rect x="1270" y="450" width="220" height="145" class="card"/>
+    <circle cx="1380" cy="489" r="27" fill="#f2b811"/>
+    <text x="1380" y="495" class="badge">KV</text>
+    <text x="1380" y="534" class="node-title">Azure Key Vault</text>
+    <text x="1380" y="557" class="node-sub">Optional secrets</text>
+    <text x="1380" y="578" class="node-sub">RBAC + purge protection</text>
+  </g>
+  <g id="observability">
+    <rect x="1270" y="660" width="220" height="145" class="card"/>
+    <circle cx="1380" cy="699" r="27" fill="#7b42bc"/>
+    <text x="1380" y="705" class="badge">AP</text>
+    <text x="1380" y="744" class="node-title">Application Insights</text>
+    <text x="1380" y="767" class="node-sub">Log Analytics</text>
+    <text x="1380" y="788" class="node-sub">Traces + health telemetry</text>
+  </g>
+  <g id="container-registry">
+    <rect x="360" y="715" width="265" height="105" class="card"/>
+    <circle cx="492" cy="750" r="23" fill="#0078d4"/>
+    <text x="492" y="756" class="badge">CR</text>
+    <text x="492" y="790" class="node-title">Azure Container Registry</text>
+    <text x="492" y="810" class="node-sub">Admin credentials disabled</text>
+  </g>
+
+  <path d="M290 560 H350" class="line"/>
+  <text x="320" y="548" class="label" text-anchor="middle">HTTPS</text>
+  <path d="M625 540 H670" class="line"/>
+  <path d="M880 545 C910 545 915 522 935 522" class="line"/>
+  <text x="910" y="510" class="label">Chat</text>
+  <path d="M880 575 C910 575 915 732 935 732" class="line"/>
+  <text x="900" y="679" class="label">Retrieve</text>
+  <path d="M625 766 C710 766 745 625 745 597" class="line"/>
+  <text x="671" y="732" class="label">Image pull</text>
+  <path d="M880 560 C1050 620 1220 548 1260 525" class="dash"/>
+  <text x="1160" y="548" class="label">Optional secret access</text>
+  <path d="M625 590 C850 630 1110 710 1260 732" class="dash"/>
+  <text x="1135" y="704" class="label">Telemetry</text>
+
+  <text x="80" y="950" class="small">Solid blue = application/data flow</text>
+  <line x1="260" y1="946" x2="315" y2="946" class="line"/>
+  <text x="350" y="950" class="small">Purple dashed = supporting control/telemetry</text>
+  <line x1="620" y1="946" x2="675" y2="946" class="dash"/>
+  <text x="730" y="950" class="small">Replace each acronym badge with the matching official Microsoft Azure SVG icon in Visio.</text>
+</svg>

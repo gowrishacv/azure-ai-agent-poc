@@ -45,3 +45,9 @@ python scripts/regulatory_evidence.py \
 
 The local command does not call AI unless `--ai` is explicitly supplied and
 the Foundry environment variables plus Azure CLI authentication are available.
+
+## Visio reference design
+
+- [Platform architecture SVG](diagrams/azure-ai-agent-platform-visio-reference.svg)
+- [Regulatory delivery flow SVG](diagrams/azure-devops-regulatory-flow-visio-reference.svg)
+- [Visio build guide](diagrams/visio-build-guide.md)

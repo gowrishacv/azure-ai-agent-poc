@@ -249,6 +249,7 @@ gh repo create azure-ai-agent-poc --public --source=. --remote=origin --push
 - [Cost controls](docs/cost.md)
 - [Deployment runbook](docs/deployment.md)
 - [GDPR/DORA regulatory evidence](docs/regulatory-evidence.md)
+- [Editable Visio reference diagrams](docs/diagrams/visio-build-guide.md)
 - [Architecture decisions](docs/decisions/adr-001-platform-shape.md)
 - [Medium and LinkedIn material](docs/article-kit.md)
 - [Official technical references](docs/references.md)
