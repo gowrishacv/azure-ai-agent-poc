@@ -8,7 +8,7 @@ Create or update a monthly Azure Cost Management budget for the POC resource gro
 Usage:
   ./scripts/create-azure-cost-budget.sh \
     --resource-group RG \
-    --amount 20 \
+    --amount 2000 \
     --email you@example.com \
     [--budget-name ai-agent-poc-monthly]
 
@@ -22,7 +22,7 @@ fail() {
 }
 
 resource_group=""
-amount="20"
+amount="2000"
 email=""
 budget_name="ai-agent-poc-monthly"
 
@@ -66,8 +66,8 @@ command -v az >/dev/null 2>&1 || fail "Azure CLI is required"
 
 az group show --name "$resource_group" >/dev/null
 
-start_date="$(date -u +%Y-%m-01)"
-end_date="2035-12-31"
+start_date="$(date -u +%Y-%m-01T00:00:00Z)"
+end_date="2035-12-31T00:00:00Z"
 notifications="$(
   printf '{"Actual50":{"enabled":true,"operator":"GreaterThanOrEqualTo","contact-emails":["%s"],"contact-groups":[],"contact-roles":[],"threshold":50},"Actual80":{"enabled":true,"operator":"GreaterThanOrEqualTo","contact-emails":["%s"],"contact-groups":[],"contact-roles":[],"threshold":80},"Actual100":{"enabled":true,"operator":"GreaterThanOrEqualTo","contact-emails":["%s"],"contact-groups":[],"contact-roles":[],"threshold":100}}' \
     "$email" "$email" "$email"
