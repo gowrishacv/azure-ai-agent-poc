@@ -174,7 +174,8 @@ def create_ai_review(report: dict[str, Any], retries: int = 4) -> str:
             try:
                 response = client.chat.completions.create(
                     model=deployment,
-                    max_completion_tokens=1200,
+                    max_completion_tokens=3000,
+                    reasoning_effort="minimal",
                     messages=[
                         {"role": "system", "content": AI_SYSTEM_PROMPT},
                         {
