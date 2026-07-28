@@ -1,0 +1,132 @@
+trigger: none
+pr: none
+
+schedules:
+  - cron: "0 6 * * *"
+    displayName: Daily POC cost guard at 06:00 UTC
+    branches:
+      include:
+        - main
+    always: true
+
+parameters:
+  - name: environment
+    displayName: Environment to inspect
+    type: string
+    default: dev
+    values:
+      - dev
+      - prod
+  - name: destroyResources
+    displayName: Destroy the environment after inventory
+    type: boolean
+    default: false
+  - name: failIfResourcesExist
+    displayName: Fail the morning check when POC resources still exist
+    type: boolean
+    default: true
+
+variables:
+  - name: terraformVersion
+    value: "1.15.8"
+  - ${{ if eq(parameters.environment, 'dev') }}:
+      - group: ai-agent-dev
+      - name: serviceConnection
+        value: sc-ai-agent-dev
+  - ${{ if eq(parameters.environment, 'prod') }}:
+      - group: ai-agent-prod
+      - name: serviceConnection
+        value: sc-ai-agent-prod
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Inventory
+    displayName: Morning Azure POC inventory
+    jobs:
+      - job: TaggedResources
+        displayName: Find resources that can still generate cost
+        steps:
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: Inventory tagged POC resources
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                environment="${{ parameters.environment }}"
+                resource_count="$(
+                  az resource list \
+                    --tag purpose=azure-ai-agent-poc \
+                    --query "[?tags.environment=='${environment}'] | length(@)" \
+                    --output tsv
+                )"
+
+                az resource list \
+                  --tag purpose=azure-ai-agent-poc \
+                  --query "[?tags.environment=='${environment}'].{name:name,type:type,group:resourceGroup,location:location}" \
+                  --output table
+
+                if [[ "$resource_count" -gt 0 ]]; then
+                  echo "##vso[task.logissue type=warning]${resource_count} Azure AI Agent POC resources remain in ${environment} and may generate cost."
+                  echo "##vso[task.setvariable variable=pocResourcesExist;isOutput=true]true"
+                  if [[ "${DESTROY_REQUESTED,,}" != "true" && "${FAIL_IF_EXISTS,,}" == "true" ]]; then
+                    echo "Failing the scheduled check so Azure DevOps can notify subscribers."
+                    exit 2
+                  fi
+                else
+                  echo "No tagged Azure AI Agent POC resources remain in ${environment}."
+                  echo "##vso[task.setvariable variable=pocResourcesExist;isOutput=true]false"
+                fi
+            name: inventory
+            env:
+              DESTROY_REQUESTED: ${{ parameters.destroyResources }}
+              FAIL_IF_EXISTS: ${{ parameters.failIfResourcesExist }}
+
+  - stage: Destroy
+    displayName: Explicit Terraform destroy
+    dependsOn: Inventory
+    condition: |
+      and(
+        not(canceled()),
+        ${{ eq(parameters.destroyResources, true) }},
+        eq(dependencies.Inventory.outputs['TaggedResources.inventory.pocResourcesExist'], 'true')
+      )
+    jobs:
+      - deployment: DestroyPOC
+        displayName: Destroy tagged POC environment
+        environment: ai-agent-destroy-${{ parameters.environment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+                - task: AzureCLI@2
+                  displayName: Preview and apply guarded destroy
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    addSpnToEnvironment: true
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      subscription_name="$(az account show --query name --output tsv)"
+                      extra_args=()
+                      if [[ "${{ parameters.environment }}" == "prod" ]]; then
+                        extra_args+=(--allow-production)
+                      fi
+                      ./scripts/destroy-azure-poc.sh \
+                        --environment "${{ parameters.environment }}" \
+                        --state-resource-group "$(tfStateResourceGroup)" \
+                        --state-storage-account "$(tfStateStorageAccount)" \
+                        --state-container "$(tfStateContainer)" \
+                        --apply \
+                        --non-interactive \
+                        --confirm "DESTROY ${{ parameters.environment }} ${subscription_name}" \
+                        "${extra_args[@]}"

@@ -52,6 +52,12 @@ text is explicitly treated as untrusted input.
 Read [the architecture guide](docs/architecture.md) for trust boundaries and
 the reasons behind these choices.
 
+For spend protection, use the guarded
+[destroy script](scripts/destroy-azure-poc.sh), the optional
+[budget setup](scripts/create-azure-cost-budget.sh), and the
+[daily cost-guard pipeline](azure-pipelines-cost-guard.yml). Details are in
+[Cost-conscious defaults](docs/cost.md).
+
 ## Repository layout
 
 ```text
