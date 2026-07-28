@@ -46,6 +46,31 @@ python scripts/regulatory_evidence.py \
 The local command does not call AI unless `--ai` is explicitly supplied and
 the Foundry environment variables plus Azure CLI authentication are available.
 
+## Safe personal-data detection demonstration
+
+The evidence scanner can inspect repository files for potential personal-data
+indicators before any AI call. It reports only the file path, SHA-256 digest,
+indicator categories, and counts. Matched values are never copied into the
+Markdown or JSON evidence artifacts and are never sent to Microsoft Foundry.
+
+Use only the included reserved synthetic values:
+
+```bash
+python scripts/regulatory_evidence.py \
+  --repository-root . \
+  --output-dir .artifacts/pii-demo \
+  --pii-scan-path tests/fixtures/synthetic-personal-data.txt
+```
+
+The report should show five indicators: a labelled person name, email address,
+international phone number, documentation-range IPv4 address, and synthetic
+customer identifier. All matches require human validation because pattern
+detection can produce false positives.
+
+The Azure DevOps regulatory stage scans `data/` with
+`--fail-on-personal-data`. Do not add the synthetic fixture to `data/`, because
+that would intentionally block deployment.
+
 ## Visio reference design
 
 - [Platform architecture SVG](diagrams/azure-ai-agent-platform-visio-reference.svg)

@@ -33,6 +33,28 @@ must remain an explicit business/legal decision. Return concise Markdown with
 the headings: Executive summary, Priority gaps, Recommended actions, Human
 decisions required."""
 
+PERSONAL_DATA_PATTERNS = {
+    "labelled_person_name": re.compile(
+        r"^[ \t]*(?:name|full_name)[ \t]*[:=][ \t]*"
+        r"[A-Z][A-Za-z'-]+(?:[ \t]+[A-Z][A-Za-z'-]+)+[ \t]*$",
+        flags=re.MULTILINE | re.IGNORECASE,
+    ),
+    "email_address": re.compile(
+        r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@"
+        r"[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?![A-Za-z0-9.-])"
+    ),
+    "international_phone": re.compile(
+        r"(?<!\w)\+\d{1,3}[\s.-]?(?:\(\d{2,4}\)|\d{2,4})"
+        r"(?:[\s.-]?\d{2,4}){2,3}(?!\w)"
+    ),
+    "ipv4_address": re.compile(
+        r"(?<!\d)(?:25[0-5]|2[0-4]\d|1?\d?\d)"
+        r"(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?!\d)"
+    ),
+    "customer_identifier": re.compile(r"(?<![A-Za-z0-9])CUST-\d{6}(?!\d)"),
+}
+SCANNABLE_SUFFIXES = {".csv", ".json", ".md", ".txt", ".yaml", ".yml"}
+
 
 def _safe_path(root: Path, relative_path: str) -> Path:
     candidate = (root / relative_path).resolve()
@@ -41,6 +63,63 @@ def _safe_path(root: Path, relative_path: str) -> Path:
     except ValueError as exc:
         raise ValueError(f"Control path escapes repository root: {relative_path}") from exc
     return candidate
+
+
+def scan_personal_data(
+    repository_root: Path,
+    relative_paths: list[str],
+) -> dict[str, Any]:
+    files: set[Path] = set()
+    for relative_path in relative_paths:
+        candidate = _safe_path(repository_root, relative_path)
+        if candidate.is_dir():
+            files.update(
+                path
+                for path in candidate.rglob("*")
+                if path.is_file() and path.suffix.lower() in SCANNABLE_SUFFIXES
+            )
+        elif candidate.is_file():
+            files.add(candidate)
+
+    findings: list[dict[str, Any]] = []
+    aggregate_types: dict[str, int] = {}
+    for path in sorted(files):
+        content = path.read_text(encoding="utf-8", errors="replace")
+        type_counts = {
+            indicator_type: len(list(pattern.finditer(content)))
+            for indicator_type, pattern in PERSONAL_DATA_PATTERNS.items()
+        }
+        type_counts = {key: value for key, value in type_counts.items() if value}
+        if not type_counts:
+            continue
+
+        for indicator_type, count in type_counts.items():
+            aggregate_types[indicator_type] = (
+                aggregate_types.get(indicator_type, 0) + count
+            )
+        findings.append(
+            {
+                "path": path.relative_to(repository_root).as_posix(),
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "indicator_counts": type_counts,
+                "total_indicators": sum(type_counts.values()),
+            }
+        )
+
+    total_findings = sum(item["total_indicators"] for item in findings)
+    return {
+        "status": "potential_personal_data_detected" if findings else "clear",
+        "scanned_files": len(files),
+        "files_with_findings": len(findings),
+        "total_indicators": total_findings,
+        "indicator_types": aggregate_types,
+        "findings": findings,
+        "values_included_in_report": False,
+        "note": (
+            "Pattern matches require human validation and are not proof that "
+            "the data identifies a natural person."
+        ),
+    }
 
 
 def load_control_sets(controls_dir: Path) -> list[dict[str, Any]]:
@@ -141,6 +220,11 @@ def create_ai_review(report: dict[str, Any], retries: int = 4) -> str:
     sanitized = {
         "disclaimer": report["disclaimer"],
         "summary": report["summary"],
+        "personal_data_scan": {
+            key: value
+            for key, value in report.get("personal_data_scan", {}).items()
+            if key not in {"findings"}
+        },
         "regulations": [
             {
                 "regulation": regulation["regulation"],
@@ -184,7 +268,14 @@ def create_ai_review(report: dict[str, Any], retries: int = 4) -> str:
                         },
                     ],
                 )
-                return response.choices[0].message.content or "AI returned no review."
+                content = response.choices[0].message.content
+                if content:
+                    return content
+                finish_reason = response.choices[0].finish_reason or "unknown"
+                return (
+                    "AI review unavailable: the model returned no content "
+                    f"(finish_reason={finish_reason})."
+                )
             except (ClientAuthenticationError, OpenAIError) as exc:
                 if attempt == retries:
                     return f"AI review unavailable after {retries} attempts: {type(exc).__name__}"
@@ -207,6 +298,40 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Manual reviews required: **{summary['manual_reviews_required']}**",
         "",
     ]
+    personal_data_scan = report.get("personal_data_scan")
+    if personal_data_scan:
+        lines.extend(
+            [
+                "## Potential personal-data indicators",
+                "",
+                f"- Status: **{personal_data_scan['status']}**",
+                f"- Files scanned: **{personal_data_scan['scanned_files']}**",
+                (
+                    "- Files with findings: "
+                    f"**{personal_data_scan['files_with_findings']}**"
+                ),
+                (
+                    "- Total indicators: "
+                    f"**{personal_data_scan['total_indicators']}**"
+                ),
+                "- Detected values included in report: **no**",
+                "",
+                personal_data_scan["note"],
+                "",
+            ]
+        )
+        for finding in personal_data_scan["findings"]:
+            indicator_summary = ", ".join(
+                f"{indicator_type}: {count}"
+                for indicator_type, count in sorted(
+                    finding["indicator_counts"].items()
+                )
+            )
+            lines.append(
+                f"- `{finding['path']}` — {indicator_summary}; "
+                f"SHA-256: `{finding['sha256']}`"
+            )
+        lines.append("")
     for regulation in report["regulations"]:
         lines.extend(
             [
@@ -269,6 +394,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--ai", action="store_true")
     parser.add_argument("--fail-on-critical", action="store_true")
+    parser.add_argument(
+        "--pii-scan-path",
+        action="append",
+        default=[],
+        help="Repository-relative file or directory to scan; may be repeated.",
+    )
+    parser.add_argument("--fail-on-personal-data", action="store_true")
     return parser.parse_args()
 
 
@@ -284,6 +416,14 @@ def main() -> int:
         repository_root,
         load_control_sets(controls_dir),
     )
+    if args.pii_scan_path:
+        report["personal_data_scan"] = scan_personal_data(
+            repository_root,
+            args.pii_scan_path,
+        )
+        report["summary"]["personal_data_findings"] = report[
+            "personal_data_scan"
+        ]["total_indicators"]
     report["ai_review"] = (
         create_ai_review(report)
         if args.ai
@@ -293,6 +433,11 @@ def main() -> int:
     print(json.dumps(report["summary"], sort_keys=True))
     if args.fail_on_critical and report["summary"]["critical_failures"]:
         return 2
+    if (
+        args.fail_on_personal_data
+        and report.get("personal_data_scan", {}).get("total_indicators", 0)
+    ):
+        return 3
     return 0
 
 

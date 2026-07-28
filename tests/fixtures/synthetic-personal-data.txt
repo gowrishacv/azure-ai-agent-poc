@@ -1,0 +1,7 @@
+SYNTHETIC TEST DATA — THESE VALUES DO NOT IDENTIFY REAL PEOPLE
+
+Name: Example Person
+Email: ava.example@example.invalid
+Telephone: +49 30 5550 1234
+Last known IP address: 192.0.2.42
+Customer reference: CUST-123456

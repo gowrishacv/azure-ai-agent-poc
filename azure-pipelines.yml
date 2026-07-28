@@ -192,6 +192,8 @@ stages:
                 python "$(Build.SourcesDirectory)/scripts/regulatory_evidence.py" \
                   --repository-root "$(Build.SourcesDirectory)" \
                   --output-dir "$(Build.ArtifactStagingDirectory)/regulatory-evidence" \
+                  --pii-scan-path data \
+                  --fail-on-personal-data \
                   --ai \
                   --fail-on-critical
           - task: PublishPipelineArtifact@1
