@@ -1,9 +1,27 @@
 data "azurerm_client_config" "current" {}
 
+resource "terraform_data" "lifecycle_expiry" {
+  count = var.resource_ttl_hours > 0 ? 1 : 0
+
+  input            = timeadd(timestamp(), format("%dh", var.resource_ttl_hours))
+  triggers_replace = [var.resource_ttl_hours]
+
+  lifecycle {
+    ignore_changes = [input]
+  }
+}
+
 resource "azurerm_resource_group" "this" {
   name     = "rg-${local.base_name}"
   location = var.location
   tags     = local.tags
+
+  lifecycle {
+    precondition {
+      condition     = !var.auto_destroy || var.resource_ttl_hours > 0
+      error_message = "auto_destroy requires resource_ttl_hours to be greater than zero."
+    }
+  }
 }
 
 module "network" {

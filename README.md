@@ -58,6 +58,11 @@ For spend protection, use the guarded
 [daily cost-guard pipeline](azure-pipelines-cost-guard.yml). Details are in
 [Cost-conscious defaults](docs/cost.md).
 
+The dev profile expires after 24 hours by default. Scheduled cleanup requires
+the Terraform-created `expires_on` and `auto_destroy=true` tags, is rejected for
+prod, publishes a lifecycle report, and leaves bootstrap state and Azure DevOps
+identities intact.
+
 ## Repository layout
 
 ```text

@@ -54,6 +54,15 @@ output "application_identity_client_id" {
   value = module.application.client_id
 }
 
+output "lifecycle" {
+  value = {
+    auto_destroy = var.resource_ttl_hours > 0 && var.auto_destroy
+    expires_on = var.resource_ttl_hours > 0 ? (
+      terraform_data.lifecycle_expiry[0].output
+    ) : null
+  }
+}
+
 output "deployment_summary" {
   value = {
     profile            = var.enable_private_networking ? "private-poc" : "mvp"

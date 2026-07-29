@@ -25,6 +25,10 @@ parameters:
     displayName: Fail the morning check when POC resources still exist
     type: boolean
     default: true
+  - name: autoDestroyExpiredDev
+    displayName: Automatically destroy an expired dev environment on scheduled runs
+    type: boolean
+    default: true
 
 variables:
   - name: terraformVersion
@@ -58,24 +62,62 @@ stages:
               inlineScript: |
                 set -euo pipefail
                 environment="${{ parameters.environment }}"
-                resource_count="$(
+                tagged_resource_count="$(
                   az resource list \
                     --tag purpose=azure-ai-agent-poc \
                     --query "[?tags.environment=='${environment}'] | length(@)" \
                     --output tsv
                 )"
+                tagged_group_count="$(
+                  az group list \
+                    --tag purpose=azure-ai-agent-poc \
+                    --query "[?tags.environment=='${environment}'] | length(@)" \
+                    --output tsv
+                )"
+                tracked_count="$((tagged_resource_count + tagged_group_count))"
 
                 az resource list \
                   --tag purpose=azure-ai-agent-poc \
                   --query "[?tags.environment=='${environment}'].{name:name,type:type,group:resourceGroup,location:location}" \
                   --output table
+                az group list \
+                  --tag purpose=azure-ai-agent-poc \
+                  --query "[?tags.environment=='${environment}'].{name:name,type:'Microsoft.Resources/resourceGroups',location:location,expires_on:tags.expires_on,auto_destroy:tags.auto_destroy}" \
+                  --output table
 
-                if [[ "$resource_count" -gt 0 ]]; then
-                  echo "##vso[task.logissue type=warning]${resource_count} Azure AI Agent POC resources remain in ${environment} and may generate cost."
+                now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                expired_auto_destroy="false"
+                while IFS=$'\t' read -r group_name expires_on auto_destroy; do
+                  [[ -n "$group_name" ]] || continue
+                  printf 'Lifecycle: group=%s expires_on=%s auto_destroy=%s\n' \
+                    "$group_name" "${expires_on:-not-set}" "${auto_destroy:-false}"
+                  if [[ "${auto_destroy,,}" == "true" &&
+                    "$expires_on" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ &&
+                    ( "$expires_on" < "$now" || "$expires_on" == "$now" ) ]]; then
+                    expired_auto_destroy="true"
+                  fi
+                done < <(
+                  az group list \
+                    --tag purpose=azure-ai-agent-poc \
+                    --query "[?tags.environment=='${environment}'].[name,tags.expires_on,tags.auto_destroy]" \
+                    --output tsv
+                )
+
+                echo "##vso[task.setvariable variable=expiredAutoDestroy;isOutput=true]${expired_auto_destroy}"
+
+                if [[ "$tracked_count" -gt 0 ]]; then
+                  echo "##vso[task.logissue type=warning]${tagged_resource_count} resources and ${tagged_group_count} resource groups remain in ${environment} and may generate cost."
                   echo "##vso[task.setvariable variable=pocResourcesExist;isOutput=true]true"
                   if [[ "${DESTROY_REQUESTED,,}" != "true" && "${FAIL_IF_EXISTS,,}" == "true" ]]; then
-                    echo "Failing the scheduled check so Azure DevOps can notify subscribers."
-                    exit 2
+                    if [[ "$BUILD_REASON" == "Schedule" &&
+                      "${AUTO_DESTROY_EXPIRED_DEV,,}" == "true" &&
+                      "$environment" == "dev" &&
+                      "$expired_auto_destroy" == "true" ]]; then
+                      echo "Expired dev cleanup is eligible; continuing to the guarded destroy stage."
+                    else
+                      echo "Failing the scheduled check so Azure DevOps can notify subscribers."
+                      exit 2
+                    fi
                   fi
                 else
                   echo "No tagged Azure AI Agent POC resources remain in ${environment}."
@@ -85,6 +127,8 @@ stages:
             env:
               DESTROY_REQUESTED: ${{ parameters.destroyResources }}
               FAIL_IF_EXISTS: ${{ parameters.failIfResourcesExist }}
+              AUTO_DESTROY_EXPIRED_DEV: ${{ parameters.autoDestroyExpiredDev }}
+              BUILD_REASON: $(Build.Reason)
 
   - stage: Destroy
     displayName: Explicit Terraform destroy
@@ -92,8 +136,16 @@ stages:
     condition: |
       and(
         not(canceled()),
-        ${{ eq(parameters.destroyResources, true) }},
-        eq(dependencies.Inventory.outputs['TaggedResources.inventory.pocResourcesExist'], 'true')
+        eq(dependencies.Inventory.outputs['TaggedResources.inventory.pocResourcesExist'], 'true'),
+        or(
+          ${{ eq(parameters.destroyResources, true) }},
+          and(
+            eq(variables['Build.Reason'], 'Schedule'),
+            ${{ eq(parameters.environment, 'dev') }},
+            ${{ eq(parameters.autoDestroyExpiredDev, true) }},
+            eq(dependencies.Inventory.outputs['TaggedResources.inventory.expiredAutoDestroy'], 'true')
+          )
+        )
       )
     jobs:
       - deployment: DestroyPOC
@@ -118,15 +170,29 @@ stages:
                       set -euo pipefail
                       subscription_name="$(az account show --query name --output tsv)"
                       extra_args=()
+                      report_dir="$(Build.ArtifactStagingDirectory)/lifecycle-cleanup"
+                      report_file="${report_dir}/report.md"
+                      mkdir -p "$report_dir"
+                      printf '# Lifecycle cleanup\n\nCleanup did not start.\n' >"$report_file"
                       if [[ "${{ parameters.environment }}" == "prod" ]]; then
                         extra_args+=(--allow-production)
+                      fi
+                      if [[ "$(Build.Reason)" == "Schedule" ]]; then
+                        extra_args+=(--only-if-expired)
                       fi
                       ./scripts/destroy-azure-poc.sh \
                         --environment "${{ parameters.environment }}" \
                         --state-resource-group "$(tfStateResourceGroup)" \
                         --state-storage-account "$(tfStateStorageAccount)" \
                         --state-container "$(tfStateContainer)" \
+                        --report-file "$report_file" \
                         --apply \
                         --non-interactive \
                         --confirm "DESTROY ${{ parameters.environment }} ${subscription_name}" \
                         "${extra_args[@]}"
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish lifecycle cleanup report
+                  condition: always()
+                  inputs:
+                    targetPath: $(Build.ArtifactStagingDirectory)/lifecycle-cleanup
+                    artifact: lifecycle-cleanup-${{ parameters.environment }}-$(Build.BuildId)

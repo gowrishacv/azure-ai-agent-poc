@@ -16,3 +16,4 @@ outputs/
 dist/
 build/
 *.zip
+.artifacts/

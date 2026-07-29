@@ -6,9 +6,10 @@ enable_private_networking = true
 container_min_replicas    = 1
 container_max_replicas    = 3
 log_daily_quota_gb        = 1
+resource_ttl_hours        = 0
+auto_destroy              = false
 
 # Register an Entra API application, then enable these before real use.
 require_auth   = false
 auth_tenant_id = ""
 auth_audience  = ""
-

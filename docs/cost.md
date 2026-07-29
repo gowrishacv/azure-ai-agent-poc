@@ -29,19 +29,27 @@ Azure Pricing Calculator with the intended region before deployment.
 
 ## Cost safety toolkit
 
-Three controls are included. They deliberately do not create an always-on
-monitoring service:
+Four controls are included. They deliberately do not create an additional
+always-on monitoring service:
 
 1. `scripts/destroy-azure-poc.sh` creates a Terraform destroy plan by default.
    Applying the plan requires matching POC tags and an exact subscription-name
-   confirmation. Production also requires `--allow-production`.
+   confirmation. Production also requires `--allow-production`. The script
+   removes only the known alert rule and action group that Application Insights
+   creates automatically, then verifies that state and the resource group are
+   gone.
 2. `scripts/create-azure-cost-budget.sh` creates a resource-group budget with
    email alerts at 50%, 80%, and 100%.
 3. `azure-pipelines-cost-guard.yml` inventories tagged POC resources every day
-   at 06:00 UTC. Scheduled runs are read-only and fail when POC resources are
-   found, allowing Azure DevOps run-failure notifications to reach subscribers.
-   Destruction is available only through an explicit manual parameter and a
-   separate Azure DevOps environment that should have an approval check.
+   at 06:00 UTC. It publishes a lifecycle report whenever cleanup runs.
+4. The dev Terraform profile sets a fixed `expires_on` tag 24 hours after
+   creation and `auto_destroy=true`. A scheduled cost-guard run can destroy
+   that expired dev environment. Production defaults to no expiry and can
+   never use the scheduled-expiry mode.
+
+The expiry timestamp is fixed when Terraform creates the environment; normal
+plans do not move it forward. Changing `resource_ttl_hours` deliberately
+replaces the lifecycle marker and calculates a new expiry.
 
 Preview a development destroy:
 
@@ -49,7 +57,8 @@ Preview a development destroy:
 ./scripts/destroy-azure-poc.sh \
   --environment dev \
   --state-resource-group "$STATE_RG" \
-  --state-storage-account "$STATE_ACCOUNT"
+  --state-storage-account "$STATE_ACCOUNT" \
+  --report-file .artifacts/lifecycle-preview.md
 ```
 
 After reviewing the complete plan, rerun the same command with `--apply`. The
@@ -62,18 +71,30 @@ RESOURCE_GROUP="$(terraform -chdir=infra output -raw resource_group_name)"
 
 ./scripts/create-azure-cost-budget.sh \
   --resource-group "$RESOURCE_GROUP" \
-  --amount 20 \
+  --amount "<monthly-amount-in-your-billing-currency>" \
   --email "replace-with-your-email@example.com"
 ```
+
+Azure chooses the budget currency from the billing account; the CLI does not
+accept a separate currency parameter.
 
 Azure Cost Management budgets are evaluated from delayed cost data and only
 send notifications; they do not stop resources. The guarded Terraform destroy
 remains the reliable way to stop this POC's workload charges.
 
 Create a second Azure DevOps pipeline from
-`azure-pipelines-cost-guard.yml`. Keep its scheduled default in inventory-only
-mode. For a manual destroy, select `destroyResources: true` and require approval
-on the `ai-agent-destroy-dev` or `ai-agent-destroy-prod` environment.
+`azure-pipelines-cost-guard.yml`. Its schedule targets dev. Before enabling
+unattended cleanup, verify that the WIF service connection, variable group, POC
+tags, backend key, and dev-only TTL match the intended subscription. A manual
+destroy uses `destroyResources: true`. Keep an approval check on
+`ai-agent-destroy-prod`; scheduled expiry cleanup is rejected for prod by both
+the pipeline and destroy script.
+
+If a terminal or pipeline stops during Terraform apply, first confirm that no
+other apply is active. Use the lock ID from Terraform's error with
+`terraform force-unlock`, then rerun the guarded destroy. Do not use
+`-lock=false`. A partial destroy can remove Terraform outputs; the script falls
+back to the resource-group object still in state so cleanup can resume safely.
 
 ## When to spend more
 

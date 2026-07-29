@@ -7,4 +7,5 @@ container_min_replicas    = 1
 container_max_replicas    = 5
 log_daily_quota_gb        = 2
 allowed_cors_origins      = ["https://app.example.com"]
-
+resource_ttl_hours        = 0
+auto_destroy              = false

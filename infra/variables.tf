@@ -32,6 +32,23 @@ variable "owner" {
   default     = "azure-ai-poc"
 }
 
+variable "resource_ttl_hours" {
+  description = "Hours before an environment becomes eligible for scheduled cleanup. Zero disables expiry."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.resource_ttl_hours >= 0 && floor(var.resource_ttl_hours) == var.resource_ttl_hours
+    error_message = "resource_ttl_hours must be zero or a positive whole number."
+  }
+}
+
+variable "auto_destroy" {
+  description = "Allow the scheduled cost-guard pipeline to destroy this environment after expires_on."
+  type        = bool
+  default     = false
+}
+
 variable "chat_model_name" {
   description = "Model catalog name available in the selected region."
   type        = string
