@@ -1,5 +1,16 @@
 # Architecture
 
+## Editable architecture package
+
+- [Two-page Azure end-to-end architecture
+  (`.drawio`)](diagrams/azure-ai-agent-end-to-end.drawio)
+- [Connectivity, ports, identity, and trust-boundary
+  matrix](diagrams/connectivity-and-ports.md)
+- [Visio and diagrams.net build guide](diagrams/visio-build-guide.md)
+
+The editable diagram uses the Microsoft Azure icon library and separates the
+currently implemented POC from optional enterprise production extensions.
+
 ## Design goal
 
 Demonstrate how an Azure AI prototype becomes a governed cloud workload without
@@ -109,4 +120,3 @@ private ACR; those depend on the organization's landing zone.
 - Service Bus: the request flow is synchronous and short-lived.
 - AKS: Container Apps provides the needed scale-to-zero and identity features.
 - Agent write tools: the demo is read-only by design.
-

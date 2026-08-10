@@ -1,14 +1,24 @@
-# Visio build guide
+# Visio and diagrams.net build guide
 
-Use two pages so the architecture stays readable:
+The editable source is
+[`azure-ai-agent-end-to-end.drawio`](azure-ai-agent-end-to-end.drawio). It has
+two pages so the architecture remains readable:
 
-1. **Platform architecture** — Azure services and runtime/data flows.
-2. **Regulatory delivery flow** — Azure DevOps stages, evidence, decisions, and
-   deployment gating.
+1. **End-to-end architecture** — Azure DevOps delivery, application runtime,
+   AI/data paths, observability, lifecycle automation, and optional enterprise
+   controls.
+2. **Connectivity and ports** — the logical flow numbers, protocols, ports,
+   identities, trust boundaries, and current-versus-target exposure.
 
-The matching SVG files in this directory are clean reference layouts that can
-be dragged directly into Visio. Ungroup the SVG if you want to edit individual
-vector elements.
+Open the file in [diagrams.net with the Azure library
+enabled](https://app.diagrams.net/?splash=0&libs=azure2). The diagram references
+the Microsoft Azure icons included in diagrams.net's `azure2` library. It does
+not contain copied personal subscription, tenant, resource, or identity values.
+
+To use Microsoft Visio, open the `.drawio` file in diagrams.net and choose
+**File → Export as → VSDX**. Review text wrapping and connector labels after
+opening the exported file in Visio. SVG, PNG, and PDF are better choices when
+an editable Visio file is not required.
 
 ## Page setup
 
@@ -22,50 +32,59 @@ vector elements.
 
 ## Official icon mapping
 
-Download the official Microsoft Azure SVG package and replace each acronym
-badge without resizing or distorting the icon:
+The `.drawio` source already uses the corresponding Azure SVGs:
 
-- ADO → Azure DevOps;
-- TF → Terraform logo or a plain Infrastructure as Code label;
-- WIF / ID → Microsoft Entra ID or Managed Identities;
-- CA → Azure Container Apps;
-- AI → Microsoft Foundry;
-- SR → Azure AI Search;
-- KV → Azure Key Vault;
-- AP → Application Insights;
-- CR → Azure Container Registry.
+- Azure DevOps;
+- Microsoft Entra ID and Managed Identities;
+- Azure Storage Accounts for keyless Terraform state;
+- Azure Container Apps and Azure Container Registry;
+- Microsoft Foundry;
+- Azure AI Search;
+- Azure Key Vault;
+- Private Endpoint and Private DNS Zones;
+- Application Insights and Log Analytics;
+- Front Door, API Management, Azure Firewall, and Virtual Machine for the
+  optional enterprise extension;
+- Cost Management and Billing for the budget control.
 
-Keep the service name visible below every icon. Do not rotate, crop, recolour,
-or distort Microsoft service icons.
-
-Official package:
-
-`https://learn.microsoft.com/azure/architecture/icons/`
+Terraform is represented by a labelled pipeline stage because it is not an
+Azure service. Keep every service name visible, and do not rotate, crop,
+recolour, or distort Microsoft product icons. Microsoft publishes the official
+[Azure architecture icon guidance and package](https://learn.microsoft.com/azure/architecture/icons/).
 
 ## Connectors
 
-### Platform page
+### End-to-end architecture page
 
-1. Azure DevOps → Terraform: pipeline execution.
-2. Terraform → WIF: secretless Azure authentication.
-3. WIF → GDPR/DORA evidence: deployment identity.
-4. Client → Container Apps: HTTPS request.
-5. Container Apps → Foundry: chat and embeddings using managed identity.
-6. Container Apps → Azure AI Search: retrieval using managed identity.
-7. Container Registry → Container Apps: image pull.
-8. Container Apps → Application Insights: telemetry.
-9. Container Apps → Key Vault: optional secret retrieval.
+1. Engineer → Azure DevOps: commit, approve, and run.
+2. Azure DevOps → Microsoft Entra ID: OIDC workload identity federation.
+3. Pipeline → Azure Resource Manager and remote state: Terraform over HTTPS.
+4. Pipeline → regulatory gate: deterministic GDPR/DORA evidence followed by
+   optional advisory review of sanitized findings.
+5. Pipeline → Container Registry → Container Apps: build, pull, deploy, index,
+   and smoke test.
+6. User → Container Apps: HTTPS 443; Container Apps forwards internally to the
+   FastAPI target port 8000.
+7. Container Apps → Foundry: embeddings and grounded chat over HTTPS 443 using
+   managed identity.
+8. Container Apps → Azure AI Search: hybrid retrieval over HTTPS 443 using
+   managed identity.
+9. Container Apps → Key Vault: optional retrieval over HTTPS 443 using managed
+   identity.
+10. Container Apps → Application Insights → Log Analytics: telemetry.
+11. Scheduled lifecycle guard → Azure control plane: inventory and destroy only
+    tagged, expired development resources.
 
-### Regulatory page
+### Connectivity and ports page
 
-1. Validate → Plan → Approval → Apply.
-2. Apply → deterministic GDPR/DORA checks.
-3. Critical failure **Yes** → block deployment and retain evidence.
-4. Critical failure **No** → sanitize results.
-5. Sanitized results → Foundry advisory review.
-6. AI review → evidence artifacts.
-7. Evidence artifacts → build, deploy, index, and smoke test.
-8. DPIA, DORA applicability, and risk acceptance remain human-owned decisions.
+Use [`connectivity-and-ports.md`](connectivity-and-ports.md) as the exact flow
+legend. Blue solid connectors are implemented flows, blue dashed connectors
+are private-endpoint/DNS paths, purple dashed connectors are controls or
+telemetry, and grey dashed connectors are optional enterprise extensions.
+
+Do not draw TCP 8000 as an Internet-open port. HTTPS terminates at Container
+Apps ingress, and the managed environment routes internally to the container
+target port.
 
 ## Important labels
 
@@ -73,3 +92,5 @@ Official package:
 - “No source code, Terraform state, secrets, or customer data sent to AI”
 - “Managed identity + Azure RBAC”
 - “DORA applicability requires financial-sector owner review”
+- “Implemented POC” versus “Optional enterprise extension”
+- “Budget alerts notify; lifecycle guard performs controlled cleanup”
