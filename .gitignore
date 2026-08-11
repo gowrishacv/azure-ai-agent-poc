@@ -17,3 +17,5 @@ dist/
 build/
 *.zip
 .artifacts/
+node_modules/
+app/static-build/

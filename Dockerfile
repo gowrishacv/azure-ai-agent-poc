@@ -18,7 +18,7 @@ RUN groupadd --system app && useradd --system --gid app --uid 10001 app
 
 COPY pyproject.toml README.md ./
 COPY app ./app
-COPY --from=ui-build /src/app/static ./app/static
+COPY --from=ui-build /src/app/static-build ./app/static
 RUN pip install --upgrade pip && pip install .
 
 USER 10001
