@@ -54,7 +54,7 @@ stages:
               versionSpec: "22.x"
             displayName: Use Node.js for chat UI
           - bash: |
-              npm install --no-audit --no-fund
+              npm ci --no-audit --no-fund
               npm run check
             displayName: Build Phase 2 chat UI
           - task: TerraformInstaller@1

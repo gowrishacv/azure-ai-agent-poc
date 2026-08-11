@@ -117,7 +117,7 @@ resolution only after reviewing its permissions, latency, and cache policy.
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm run build
 ruff check app scripts tests
 pytest -q

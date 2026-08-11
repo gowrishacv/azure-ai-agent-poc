@@ -1,8 +1,8 @@
 FROM node:22-alpine AS ui-build
 
 WORKDIR /src
-COPY package.json vite.config.js ./
-RUN npm install --no-audit --no-fund
+COPY package.json package-lock.json vite.config.js ./
+RUN npm ci --no-audit --no-fund
 COPY app-ui ./app-ui
 RUN npm run build
 
