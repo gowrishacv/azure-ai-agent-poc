@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     require_auth: bool = False
     auth_tenant_id: str | None = None
     auth_audience: str | None = None
+    auth_required_role: str = ""
+    auth_required_scope: str = ""
+    auth_scope: str = ""
+    ui_client_id: str = ""
+    enable_document_authorization: bool = False
     max_question_chars: int = Field(default=2000, ge=100, le=10000)
     max_search_results: int = Field(default=5, ge=1, le=10)
 

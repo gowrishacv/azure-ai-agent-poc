@@ -140,3 +140,33 @@ variable "auth_audience" {
   type        = string
   default     = ""
 }
+
+variable "auth_required_role" {
+  description = "Optional Entra application role required to call the API, for example AI.Agent.User."
+  type        = string
+  default     = ""
+}
+
+variable "auth_required_scope" {
+  description = "Optional delegated scope claim required to call the API, for example access_as_user."
+  type        = string
+  default     = ""
+}
+
+variable "auth_scope" {
+  description = "Delegated API scope requested by the browser chat client."
+  type        = string
+  default     = ""
+}
+
+variable "ui_client_id" {
+  description = "Public client ID of the Entra single-page application used by the chat UI."
+  type        = string
+  default     = ""
+}
+
+variable "enable_document_authorization" {
+  description = "Apply allowed_principals security filters to every Azure AI Search query."
+  type        = bool
+  default     = false
+}

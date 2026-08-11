@@ -9,6 +9,11 @@ patterns: managed identity, Azure RBAC, immutable Terraform plans, deployment
 approvals, bounded scaling, health probes, telemetry, and optional private
 networking.
 
+Phase 2.1 adds a responsive chat UI, optional Microsoft Entra sign-in, delegated
+scope/app-role validation, authorization-aware retrieval, correlation IDs, and
+privacy-safe answer feedback without introducing another Azure service. See
+[the Phase 2 guide](docs/phase-2.md).
+
 
 Suggested GitHub repository name: **`azure-ai-agent-poc`**
 
@@ -41,10 +46,10 @@ text is explicitly treated as untrusted input.
 |---|---|---|
 | AI platform | New Foundry `AIServices` account and project | Model allowlists, evaluations, content-safety policy |
 | Authentication to Azure | User-assigned managed identity; local keys disabled | Separate identities per tool and workload |
-| API ingress | Public HTTPS demo endpoint | Entra JWT required, WAF, private/internal ingress |
+| API ingress | Public HTTPS demo endpoint and bundled chat UI | Entra JWT required, WAF, private/internal ingress |
 | Service networking | Public endpoints with Entra/RBAC | VNet-integrated Container Apps and private endpoints |
 | API gateway | None | APIM Standard v2/Premium when gateway policies justify cost |
-| Search authorization | One shared POC index | Per-document security filters or separate indexes |
+| Search authorization | Explicit `public` documents | Entra user/group/role security filters or separate indexes |
 | Scale | Consumption, 0–2 replicas | Minimum replicas, zone-aware design, load tests |
 | Delivery | Dev/prod parameters, plan artifact, approval environment | Separate plan/apply identities and subscriptions |
 | Operations | Traces, dependency telemetry, 0.5 GB/day cap | SIEM, redaction policy, quality and cost SLOs |

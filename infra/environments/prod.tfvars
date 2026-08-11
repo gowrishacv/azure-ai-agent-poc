@@ -13,3 +13,10 @@ auto_destroy              = false
 require_auth   = false
 auth_tenant_id = ""
 auth_audience  = ""
+
+# Phase 2.1: populate these after registering the API and SPA in Entra ID.
+auth_required_role            = ""
+auth_required_scope           = ""
+auth_scope                    = ""
+ui_client_id                  = ""
+enable_document_authorization = false

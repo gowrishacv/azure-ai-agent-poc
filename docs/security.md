@@ -15,15 +15,16 @@
 | Tool risk | No write tools or model-selected external actions |
 | Operations | Health probes, telemetry, low ingestion cap |
 | Delivery | PR cannot apply; immutable plan; environment approval support |
+| User authentication | Optional Entra JWT validation for issuer, audience, scope, and app role |
+| Document authorization | Optional Search security filter over explicit public/user/group/role principals |
 
 ## Required before production data
 
-1. Register an Entra API application, set `REQUIRE_AUTH=true`,
-   `AUTH_TENANT_ID`, and `AUTH_AUDIENCE`, and validate group/app-role claims for
-   each operation. The code contains JWT signature, issuer, and audience
-   validation; the POC default leaves it disabled.
-2. Add per-document authorization metadata and apply user/group filters to
-   every Search request, or use separate indexes for hard security boundaries.
+1. Register the Entra API and SPA applications, configure their scope, role,
+   group claims, and approved redirect URIs, then activate the Phase 2 settings
+   documented in [Phase 2](phase-2.md). The POC default remains disabled.
+2. Review every document's `allowed_principals` before loading real content.
+   Use separate indexes where a hard security boundary is required.
 3. Put rate limits at a gateway or application edge. Consider APIM only after
    gateway policies and traffic justify the tier.
 4. Add Azure AI Content Safety/Prompt Shields and adversarial evaluation. A
@@ -57,8 +58,8 @@ index. A production indexing workload should have a dedicated identity.
 - **Indirect prompt injection in documents:** sources are marked as untrusted;
   the app never executes instructions from retrieved data.
 - **Data overexposure:** not solved by RAG. Implement deterministic retrieval
-  authorization before adding mixed-sensitivity documents.
+  authorization before adding mixed-sensitivity documents. Phase 2 security
+  filters provide this control when explicitly enabled and correctly indexed.
 - **Cost exhaustion:** bounded replicas, search result count, output tokens,
   model quota, and the log cap constrain blast radius. Add per-caller quotas.
 - **Telemetry leakage:** application logs counts and failures, not content.
-

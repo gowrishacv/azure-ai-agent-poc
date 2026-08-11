@@ -49,6 +49,14 @@ stages:
               ruff check app scripts tests
               pytest -q
             displayName: Lint and test application
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "22.x"
+            displayName: Use Node.js for chat UI
+          - bash: |
+              npm install --no-audit --no-fund
+              npm run check
+            displayName: Build Phase 2 chat UI
           - task: TerraformInstaller@1
             inputs:
               terraformVersion: $(terraformVersion)

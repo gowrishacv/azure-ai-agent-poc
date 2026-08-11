@@ -5,7 +5,7 @@ import httpx
 import pytest
 from openai import NotFoundError
 
-from scripts.index_documents import create_embedding_with_retry
+from scripts.index_documents import create_embedding_with_retry, validate_document_principals
 
 
 def deployment_not_found_error() -> NotFoundError:
@@ -63,3 +63,20 @@ def test_embedding_does_not_retry_unrelated_not_found(monkeypatch) -> None:
 
     assert caught.value is error
     sleep.assert_not_called()
+
+
+def test_document_principals_are_normalized() -> None:
+    document = {
+        "id": "policy-1",
+        "allowed_principals": ["role:AI.Agent.User", "public"],
+    }
+    assert validate_document_principals(document) == ["public", "role:AI.Agent.User"]
+
+
+@pytest.mark.parametrize(
+    "principals",
+    [None, [], ["everyone"], ["public", "public"], ["group:ok", "bad value"]],
+)
+def test_document_principals_fail_closed(principals) -> None:
+    with pytest.raises(ValueError):
+        validate_document_principals({"id": "policy-1", "allowed_principals": principals})

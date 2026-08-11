@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Secure, citation-first Azure AI assistant" />
+    <title>Azure AI Platform Assistant</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">CLOUDSCI.AI · INTERNAL ASSISTANT</p>
+          <h1>Azure AI Platform Assistant</h1>
+          <p class="subtitle">Grounded answers from authorized platform documentation.</p>
+        </div>
+        <div class="identity">
+          <span id="auth-state" class="status">Loading configuration…</span>
+          <button id="sign-in" class="secondary" hidden>Sign in</button>
+          <button id="sign-out" class="secondary" hidden>Sign out</button>
+        </div>
+      </header>
+
+      <section class="notice" role="note">
+        Retrieved documents are treated as untrusted data. Verify citations before acting.
+      </section>
+
+      <section id="conversation" class="conversation" aria-live="polite">
+        <article class="message assistant">
+          <div class="avatar" aria-hidden="true">AI</div>
+          <div>
+            <p>Ask about the Azure AI platform, managed identity, networking, or operations.</p>
+          </div>
+        </article>
+      </section>
+
+      <form id="ask-form" class="composer">
+        <label for="question" class="sr-only">Question</label>
+        <textarea
+          id="question"
+          name="question"
+          rows="3"
+          maxlength="2000"
+          placeholder="How should production workloads authenticate to Azure services?"
+          required
+        ></textarea>
+        <div class="composer-actions">
+          <span id="request-state" class="request-state"></span>
+          <button id="ask" type="submit">Ask assistant</button>
+        </div>
+      </form>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

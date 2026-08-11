@@ -3,19 +3,21 @@
     "id": "identity-001",
     "title": "Managed identity policy",
     "source": "POC platform policy",
+    "allowed_principals": ["public"],
     "content": "Production workloads must use Microsoft Entra ID and managed identities for Azure service authentication. API keys are disabled where the service supports Azure RBAC."
   },
   {
     "id": "network-001",
     "title": "Private connectivity policy",
     "source": "POC network policy",
+    "allowed_principals": ["public"],
     "content": "The MVP permits public service endpoints with local authentication disabled. The private profile disables public access to Microsoft Foundry, Azure AI Search, and Key Vault and connects the application through private endpoints and private DNS."
   },
   {
     "id": "operations-001",
     "title": "AI operations policy",
     "source": "POC operations policy",
+    "allowed_principals": ["public"],
     "content": "Application Insights records request and dependency telemetry. Log Analytics has a daily ingestion cap. Prompts, retrieved text, and model responses must not be logged by default because they can contain sensitive information."
   }
 ]
-

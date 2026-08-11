@@ -27,11 +27,11 @@ sequenceDiagram
     participant Foundry as Microsoft Foundry
     participant Monitor as Application Insights
 
-    User->>API: POST /ask
-    API->>API: Validate length and token
+    User->>API: Entra token + POST /ask
+    API->>API: Validate token, scope, role, and input
     API->>Foundry: Create query embedding (managed identity)
-    API->>Search: Hybrid vector/text search (managed identity)
-    Search-->>API: Top bounded documents
+    API->>Search: Hybrid search + deterministic principal filter
+    Search-->>API: Top bounded, authorized documents
     API->>API: Mark sources as untrusted data
     API->>Foundry: Grounded prompt + sources
     Foundry-->>API: Answer with citation markers
@@ -68,8 +68,9 @@ flowchart TB
 ```
 
 The model is never an authorization decision point. Azure RBAC controls service
-access; future document-level access must be applied as deterministic search
-filters before content reaches the model.
+access. When Phase 2 document authorization is enabled, explicit public, user,
+group, and role principals are applied as deterministic Search filters before
+content reaches the model.
 
 ## Deployment flow
 

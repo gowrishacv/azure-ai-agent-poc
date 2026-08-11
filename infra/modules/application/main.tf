@@ -120,6 +120,26 @@ resource "azurerm_container_app" "this" {
         name  = "AUTH_AUDIENCE"
         value = var.auth_audience
       }
+      env {
+        name  = "AUTH_REQUIRED_ROLE"
+        value = var.auth_required_role
+      }
+      env {
+        name  = "AUTH_REQUIRED_SCOPE"
+        value = var.auth_required_scope
+      }
+      env {
+        name  = "AUTH_SCOPE"
+        value = var.auth_scope
+      }
+      env {
+        name  = "UI_CLIENT_ID"
+        value = var.ui_client_id
+      }
+      env {
+        name  = "ENABLE_DOCUMENT_AUTHORIZATION"
+        value = tostring(var.enable_document_authorization)
+      }
 
       liveness_probe {
         transport = "HTTP"
@@ -145,6 +165,23 @@ resource "azurerm_container_app" "this" {
         length(var.auth_tenant_id) > 0 && length(var.auth_audience) > 0
       )
       error_message = "auth_tenant_id and auth_audience are required when require_auth is true."
+    }
+
+    precondition {
+      condition = !var.require_auth || (
+        length(var.auth_scope) > 0 && length(var.ui_client_id) > 0
+      )
+      error_message = "auth_scope and ui_client_id are required for the authenticated chat UI."
+    }
+
+    precondition {
+      condition     = var.require_auth || length(var.auth_required_role) == 0
+      error_message = "auth_required_role can be set only when require_auth is true."
+    }
+
+    precondition {
+      condition     = var.require_auth || length(var.auth_required_scope) == 0
+      error_message = "auth_required_scope can be set only when require_auth is true."
     }
   }
 
