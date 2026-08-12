@@ -82,7 +82,7 @@ resource "azurerm_cognitive_deployment" "embedding" {
 resource "azurerm_search_service" "this" {
   name                          = "srch-${var.name}"
   resource_group_name           = var.resource_group_name
-  location                      = var.search_location
+  location                      = var.location
   sku                           = var.search_sku
   replica_count                 = 1
   partition_count               = 1

@@ -1,7 +1,6 @@
 workload                  = "aiagent"
 environment               = "prod"
-location                  = "swedencentral"
-search_location           = ""
+location                  = "westeurope"
 owner                     = "platform-team"
 enable_private_networking = true
 container_min_replicas    = 1

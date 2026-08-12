@@ -23,13 +23,7 @@ variable "environment" {
 variable "location" {
   description = "Azure region. Model availability varies by region."
   type        = string
-  default     = "swedencentral"
-}
-
-variable "search_location" {
-  description = "Optional Azure AI Search region override. Empty uses the primary workload location."
-  type        = string
-  default     = ""
+  default     = "westeurope"
 }
 
 variable "owner" {

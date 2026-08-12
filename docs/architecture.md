@@ -72,12 +72,21 @@ access. When Phase 2 document authorization is enabled, explicit public, user,
 group, and role principals are applied as deterministic Search filters before
 content reaches the model.
 
-For the dev POC, Azure AI Search can use `search_location` independently from
-the primary workload region when a Search tier is temporarily unavailable.
-The application creates embeddings itself and doesn't use integrated Search
-vectorization, so this split-region fallback is supported. Production should
-prefer co-location unless capacity, residency, or recovery requirements justify
-the additional latency and possible inter-region transfer cost.
+The default dev and production configurations co-locate the workload in West
+Europe. This includes Container Apps, Container Registry, Key Vault, Microsoft
+Foundry, Azure AI Search, Log Analytics, Application Insights, managed identity,
+and optional networking resources. Fresh bootstrap deployments also default to
+West Europe. Co-location keeps the runtime data path and private networking
+design simple and avoids an unnecessary cross-region Search dependency. An
+existing Terraform state account can remain in its original region because it
+is a separate deployment-control resource and doesn't participate in application
+inference or retrieval; move it only through a deliberate state migration.
+
+Regional service support doesn't guarantee quota or capacity for a specific
+subscription. Before deployment, verify both configured model deployments and
+the selected Search tier in the target subscription. The pipeline then provides
+the final capacity check by creating an immutable Terraform plan and applying it
+only after approval.
 
 ## Deployment flow
 

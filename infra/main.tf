@@ -67,7 +67,6 @@ module "ai" {
 
   name                       = local.base_name
   location                   = var.location
-  search_location            = length(trimspace(var.search_location)) > 0 ? var.search_location : var.location
   resource_group_name        = azurerm_resource_group.this.name
   app_principal_id           = module.identity.application_principal_id
   deployer_principal_id      = data.azurerm_client_config.current.object_id

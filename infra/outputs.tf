@@ -30,10 +30,6 @@ output "search_service_name" {
   value = module.ai.search_service_name
 }
 
-output "search_location" {
-  value = length(trimspace(var.search_location)) > 0 ? var.search_location : var.location
-}
-
 output "search_endpoint" {
   value = module.ai.search_endpoint
 }
