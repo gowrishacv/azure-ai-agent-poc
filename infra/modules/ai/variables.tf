@@ -1,5 +1,6 @@
 variable "name" { type = string }
 variable "location" { type = string }
+variable "search_location" { type = string }
 variable "resource_group_name" { type = string }
 variable "app_principal_id" { type = string }
 variable "deployer_principal_id" { type = string }

@@ -1,6 +1,7 @@
 workload                  = "aiagent"
 environment               = "prod"
 location                  = "swedencentral"
+search_location           = ""
 owner                     = "replace-me"
 enable_private_networking = true
 container_min_replicas    = 1

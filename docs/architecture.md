@@ -72,6 +72,13 @@ access. When Phase 2 document authorization is enabled, explicit public, user,
 group, and role principals are applied as deterministic Search filters before
 content reaches the model.
 
+For the dev POC, Azure AI Search can use `search_location` independently from
+the primary workload region when a Search tier is temporarily unavailable.
+The application creates embeddings itself and doesn't use integrated Search
+vectorization, so this split-region fallback is supported. Production should
+prefer co-location unless capacity, residency, or recovery requirements justify
+the additional latency and possible inter-region transfer cost.
+
 ## Deployment flow
 
 ```mermaid

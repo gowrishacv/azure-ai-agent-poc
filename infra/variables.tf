@@ -26,6 +26,12 @@ variable "location" {
   default     = "swedencentral"
 }
 
+variable "search_location" {
+  description = "Optional Azure AI Search region override. Empty uses the primary workload location."
+  type        = string
+  default     = ""
+}
+
 variable "owner" {
   description = "Owner tag."
   type        = string

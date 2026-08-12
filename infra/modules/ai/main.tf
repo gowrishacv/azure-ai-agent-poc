@@ -20,6 +20,14 @@ resource "azurerm_cognitive_account" "foundry" {
   }
 }
 
+resource "terraform_data" "foundry_ready" {
+  triggers_replace = [azurerm_cognitive_account.foundry.id]
+
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+}
+
 resource "azurerm_cognitive_account_project" "this" {
   name                 = "project-${var.name}"
   cognitive_account_id = azurerm_cognitive_account.foundry.id
@@ -31,6 +39,8 @@ resource "azurerm_cognitive_account_project" "this" {
   identity {
     type = "SystemAssigned"
   }
+
+  depends_on = [azurerm_cognitive_deployment.embedding]
 }
 
 resource "azurerm_cognitive_deployment" "chat" {
@@ -47,6 +57,8 @@ resource "azurerm_cognitive_deployment" "chat" {
     name     = "GlobalStandard"
     capacity = var.chat_model_capacity
   }
+
+  depends_on = [terraform_data.foundry_ready]
 }
 
 resource "azurerm_cognitive_deployment" "embedding" {
@@ -63,12 +75,14 @@ resource "azurerm_cognitive_deployment" "embedding" {
     name     = "GlobalStandard"
     capacity = 10
   }
+
+  depends_on = [azurerm_cognitive_deployment.chat]
 }
 
 resource "azurerm_search_service" "this" {
   name                          = "srch-${var.name}"
   resource_group_name           = var.resource_group_name
-  location                      = var.location
+  location                      = var.search_location
   sku                           = var.search_sku
   replica_count                 = 1
   partition_count               = 1
