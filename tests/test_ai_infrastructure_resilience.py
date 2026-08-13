@@ -25,3 +25,17 @@ def test_workload_and_search_are_colocated_in_west_europe() -> None:
     assert 'default = "westeurope"' in bootstrap
     assert "search_location" not in variables
     assert "location                      = var.location" in module
+
+
+def test_foundry_uses_an_independent_state_managed_global_name() -> None:
+    locals_tf = (REPOSITORY_ROOT / "infra/locals.tf").read_text(encoding="utf-8")
+    root_module = (REPOSITORY_ROOT / "infra/main.tf").read_text(encoding="utf-8")
+    ai_module = (REPOSITORY_ROOT / "infra/modules/ai/main.tf").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'resource "random_string" "foundry_suffix"' in locals_tf
+    assert 'foundry_account_name = "aif-${local.base_name}-${random_string.foundry_suffix.result}"' in locals_tf
+    assert "foundry_account_name       = local.foundry_account_name" in root_module
+    assert "name                          = var.foundry_account_name" in ai_module
+    assert "custom_subdomain_name         = var.foundry_account_name" in ai_module

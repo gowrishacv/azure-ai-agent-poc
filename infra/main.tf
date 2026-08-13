@@ -66,6 +66,7 @@ module "ai" {
   source = "./modules/ai"
 
   name                       = local.base_name
+  foundry_account_name       = local.foundry_account_name
   location                   = var.location
   resource_group_name        = azurerm_resource_group.this.name
   app_principal_id           = module.identity.application_principal_id

@@ -88,6 +88,12 @@ the selected Search tier in the target subscription. The pipeline then provides
 the final capacity check by creating an immutable Terraform plan and applying it
 only after approval.
 
+The Foundry account receives a second state-managed random suffix because its
+custom subdomain is globally unique and can remain reserved after soft deletion.
+This isolates a Foundry naming collision from the stable names of the resource
+group, Container Apps environment, Search service, identity, and monitoring
+resources.
+
 ## Deployment flow
 
 ```mermaid
