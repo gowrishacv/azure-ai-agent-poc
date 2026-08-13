@@ -52,3 +52,11 @@ def test_key_vault_uses_an_independent_state_managed_global_name() -> None:
     assert 'random_string.key_vault_suffix.result' in locals_tf
     assert "key_vault_name      = local.key_vault_name" in root_module
     assert "name                          = var.key_vault_name" in identity_module
+
+
+def test_consumption_only_container_app_omits_workload_profile_name() -> None:
+    module = (REPOSITORY_ROOT / "infra/modules/application/main.tf").read_text(
+        encoding="utf-8"
+    )
+
+    assert "workload_profile_name" not in module

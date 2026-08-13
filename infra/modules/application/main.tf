@@ -30,7 +30,6 @@ resource "azurerm_container_app" "this" {
   container_app_environment_id = azurerm_container_app_environment.this.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
-  workload_profile_name        = "Consumption"
   tags                         = var.tags
 
   identity {
