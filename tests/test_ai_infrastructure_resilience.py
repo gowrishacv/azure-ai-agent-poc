@@ -39,3 +39,16 @@ def test_foundry_uses_an_independent_state_managed_global_name() -> None:
     assert "foundry_account_name       = local.foundry_account_name" in root_module
     assert "name                          = var.foundry_account_name" in ai_module
     assert "custom_subdomain_name         = var.foundry_account_name" in ai_module
+
+
+def test_key_vault_uses_an_independent_state_managed_global_name() -> None:
+    locals_tf = (REPOSITORY_ROOT / "infra/locals.tf").read_text(encoding="utf-8")
+    root_module = (REPOSITORY_ROOT / "infra/main.tf").read_text(encoding="utf-8")
+    identity_module = (
+        REPOSITORY_ROOT / "infra/modules/identity/main.tf"
+    ).read_text(encoding="utf-8")
+
+    assert 'resource "random_string" "key_vault_suffix"' in locals_tf
+    assert 'random_string.key_vault_suffix.result' in locals_tf
+    assert "key_vault_name      = local.key_vault_name" in root_module
+    assert "name                          = var.key_vault_name" in identity_module

@@ -49,6 +49,7 @@ module "identity" {
   source = "./modules/identity"
 
   name                = local.base_name
+  key_vault_name      = local.key_vault_name
   location            = var.location
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
