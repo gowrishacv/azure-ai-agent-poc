@@ -49,9 +49,9 @@ stages:
               ruff check app scripts tests
               pytest -q
             displayName: Lint and test application
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: "22.x"
+              version: "22.x"
             displayName: Use Node.js for chat UI
           - bash: |
               npm ci --no-audit --no-fund
