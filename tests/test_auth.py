@@ -1,3 +1,4 @@
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -6,6 +7,26 @@ from starlette.requests import Request
 
 from app import auth
 from app.config import Settings
+
+
+def test_pipeline_passes_entra_configuration_to_terraform() -> None:
+    pipeline = (Path(__file__).parents[1] / "azure-pipelines.yml").read_text(
+        encoding="utf-8"
+    )
+
+    expected_mappings = {
+        "TF_VAR_require_auth: $(requireAuth)",
+        "TF_VAR_auth_tenant_id: $(authTenantId)",
+        "TF_VAR_auth_audience: $(authAudience)",
+        "TF_VAR_auth_required_scope: $(authRequiredScope)",
+        "TF_VAR_auth_scope: $(authScope)",
+        "TF_VAR_ui_client_id: $(uiClientId)",
+        "TF_VAR_enable_document_authorization: $(enableDocumentAuthorization)",
+    }
+
+    assert expected_mappings.issubset(
+        {line.strip() for line in pipeline.splitlines()}
+    )
 
 
 def bearer_request() -> Request:

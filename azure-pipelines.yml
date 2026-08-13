@@ -79,6 +79,14 @@ stages:
               terraformVersion: $(terraformVersion)
           - task: AzureCLI@2
             displayName: Create reviewed Terraform plan
+            env:
+              TF_VAR_require_auth: $(requireAuth)
+              TF_VAR_auth_tenant_id: $(authTenantId)
+              TF_VAR_auth_audience: $(authAudience)
+              TF_VAR_auth_required_scope: $(authRequiredScope)
+              TF_VAR_auth_scope: $(authScope)
+              TF_VAR_ui_client_id: $(uiClientId)
+              TF_VAR_enable_document_authorization: $(enableDocumentAuthorization)
             inputs:
               azureSubscription: $(serviceConnection)
               addSpnToEnvironment: true

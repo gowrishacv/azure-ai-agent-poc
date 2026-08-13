@@ -83,6 +83,29 @@ enable_document_authorization = true
 Use variable-group or generated `.tfvars` values for real identifiers. Do not
 commit tenant-specific values to a public repository.
 
+### Azure DevOps variable-group activation
+
+For this repository, add the following non-secret variables to the
+`ai-agent-dev` variable group. The plan stage maps them to Terraform through
+the standard `TF_VAR_*` environment-variable convention:
+
+| Azure DevOps variable | Example value |
+| --- | --- |
+| `requireAuth` | `true` |
+| `authTenantId` | Microsoft Entra directory/tenant ID |
+| `authAudience` | API application/client ID |
+| `authRequiredScope` | `access_as_user` |
+| `authScope` | `api://<api-client-id>/access_as_user` |
+| `uiClientId` | Browser SPA application/client ID |
+| `enableDocumentAuthorization` | `true` |
+
+These identifiers are configuration rather than credentials, but keeping them
+in the environment variable group makes the public repository portable and
+avoids publishing tenant-specific metadata. Do not add a client secret: the
+SPA uses authorization code flow with PKCE, and the workload uses managed
+identity. Give `ai-agent-prod` the same variable names before running the prod
+pipeline, using the production Entra registrations.
+
 ## Document authorization contract
 
 Every source document must declare at least one allowed principal:
