@@ -60,6 +60,12 @@ def test_chat_ui_and_public_configuration() -> None:
     assert configuration.json()["auth_enabled"] is False
 
 
+def test_compiled_ui_assets_are_mounted() -> None:
+    assets_route = next(route for route in app.routes if route.name == "assets")
+
+    assert assets_route.path == "/assets"
+
+
 def test_feedback_accepts_only_rating_and_correlation() -> None:
     app.state.agent_factory = FakeAgent
     with TestClient(app) as client:

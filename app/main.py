@@ -10,6 +10,7 @@ from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.agent import AgentService
 from app.auth import Principal, authorize
@@ -20,6 +21,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 settings = get_settings()
 _SAFE_CORRELATION_ID = re.compile(r"^[A-Za-z0-9-]{8,64}$")
+_STATIC_DIRECTORY = Path(__file__).parent / "static"
 
 try:
     configure_azure_monitor()
@@ -43,6 +45,14 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url=None,
     lifespan=lifespan,
+)
+
+# Vite emits hashed JavaScript and CSS under /assets. The production Docker
+# build copies those files into app/static/assets beside the generated index.
+app.mount(
+    "/assets",
+    StaticFiles(directory=_STATIC_DIRECTORY / "assets", check_dir=False),
+    name="assets",
 )
 
 if settings.cors_origins:
@@ -83,7 +93,7 @@ async def add_security_and_correlation_headers(request: Request, call_next):
 
 @app.get("/", include_in_schema=False)
 async def chat_ui() -> FileResponse:
-    return FileResponse(Path(__file__).parent / "static" / "index.html")
+    return FileResponse(_STATIC_DIRECTORY / "index.html")
 
 
 @app.get("/config", response_model=PublicConfiguration)
