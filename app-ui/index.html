@@ -9,29 +9,53 @@
   <body>
     <main class="shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">CLOUDSCI.AI · INTERNAL ASSISTANT</p>
-          <h1>Azure AI Platform Assistant</h1>
-          <p class="subtitle">Grounded answers from authorized platform documentation.</p>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">CS</div>
+          <div>
+            <p class="eyebrow">CLOUDSCI.AI · INTERNAL ASSISTANT</p>
+            <h1>Azure AI Platform Assistant</h1>
+            <p class="subtitle">Grounded answers from authorized platform documentation.</p>
+          </div>
         </div>
-        <div class="identity">
-          <span id="auth-state" class="status">Loading configuration…</span>
+        <div class="header-actions">
+          <div class="identity">
+            <span class="secure-indicator" aria-hidden="true"></span>
+            <span id="auth-state" class="status">Loading configuration…</span>
+          </div>
+          <button id="new-chat" class="ghost" type="button">New chat</button>
           <button id="sign-in" class="secondary" hidden>Sign in</button>
           <button id="sign-out" class="secondary" hidden>Sign out</button>
         </div>
       </header>
 
       <section class="notice" role="note">
-        Retrieved documents are treated as untrusted data. Verify citations before acting.
+        <strong>Security notice</strong>
+        <span>Retrieved documents are untrusted source data. Verify citations before acting.</span>
       </section>
 
-      <section id="conversation" class="conversation" aria-live="polite">
-        <article class="message assistant">
-          <div class="avatar" aria-hidden="true">AI</div>
+      <section id="conversation" class="conversation" aria-live="polite" aria-label="Conversation">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon" aria-hidden="true">AI</div>
           <div>
-            <p>Ask about the Azure AI platform, managed identity, networking, or operations.</p>
+            <p class="welcome-kicker">AUTHORIZED KNOWLEDGE ASSISTANT</p>
+            <h2>What can I help you find?</h2>
+            <p>Ask a question about the Azure AI platform. Every answer is grounded in documents you are authorized to retrieve.</p>
           </div>
-        </article>
+          <div class="suggestions" aria-label="Suggested questions">
+            <button type="button" class="suggestion" data-question="How should production workloads authenticate to Azure services?">
+              <span>Identity</span>
+              How should production workloads authenticate?
+            </button>
+            <button type="button" class="suggestion" data-question="What is the private connectivity policy for this platform?">
+              <span>Networking</span>
+              What is the private connectivity policy?
+            </button>
+            <button type="button" class="suggestion" data-question="What operational telemetry is collected and what data must not be logged?">
+              <span>Operations</span>
+              What telemetry is collected?
+            </button>
+          </div>
+        </div>
       </section>
 
       <form id="ask-form" class="composer">
@@ -39,16 +63,21 @@
         <textarea
           id="question"
           name="question"
-          rows="3"
+          rows="1"
           maxlength="2000"
-          placeholder="How should production workloads authenticate to Azure services?"
+          placeholder="Ask a question about your authorized platform documents"
           required
         ></textarea>
         <div class="composer-actions">
-          <span id="request-state" class="request-state"></span>
-          <button id="ask" type="submit">Ask assistant</button>
+          <div class="composer-status">
+            <span id="request-state" class="request-state" role="status"></span>
+            <span class="keyboard-hint">Enter to send · Shift+Enter for a new line</span>
+          </div>
+          <span id="character-count" class="character-count">0 / 2000</span>
+          <button id="ask" type="submit" disabled>Ask assistant</button>
         </div>
       </form>
+      <p class="privacy-note">Conversation history is not persisted. Request content is processed for the answer and excluded from application logs.</p>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>
