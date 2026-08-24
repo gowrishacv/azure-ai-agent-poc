@@ -71,12 +71,51 @@ async def test_authorize_extracts_search_principals(monkeypatch) -> None:
     principal = await auth.authorize(bearer_request(), settings)
 
     assert principal.authenticated is True
+    assert principal.groups_overage is False
     assert principal.scopes == ("access_as_user",)
     assert principal.search_principals == (
         "group:22222222-2222-2222-2222-222222222222",
         "public",
         "role:AI.Agent.User",
         "user:11111111-1111-1111-1111-111111111111",
+    )
+
+
+@pytest.mark.asyncio
+async def test_authorize_fails_closed_for_group_overage_claim(monkeypatch) -> None:
+    monkeypatch.setattr(
+        auth,
+        "_jwk_client",
+        lambda _tenant: SimpleNamespace(
+            get_signing_key_from_jwt=lambda _token: SimpleNamespace(key="key")
+        ),
+    )
+    monkeypatch.setattr(
+        auth.jwt,
+        "decode",
+        lambda *_args, **_kwargs: {
+            "oid": "synthetic-overage-user",
+            "tid": "tenant",
+            "groups": ["platform-engineers"],
+            "_claim_names": {"groups": "src1"},
+            "_claim_sources": {"src1": {"endpoint": "https://example.invalid"}},
+            "scp": "access_as_user",
+        },
+    )
+    settings = Settings(
+        require_auth=True,
+        auth_tenant_id="tenant",
+        auth_audience="api://agent",
+        auth_required_scope="access_as_user",
+    )
+
+    principal = await auth.authorize(bearer_request(), settings)
+
+    assert principal.groups_overage is True
+    assert principal.groups == ()
+    assert principal.search_principals == (
+        "public",
+        "user:synthetic-overage-user",
     )
 
 

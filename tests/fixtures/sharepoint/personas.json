@@ -1,0 +1,52 @@
+[
+  {
+    "persona": "anonymous",
+    "authenticated": false,
+    "groups_overage": false,
+    "expected_principals": ["public"]
+  },
+  {
+    "persona": "public-user",
+    "authenticated": true,
+    "groups_overage": false,
+    "expected_principals": ["public", "user:synthetic-public-user"]
+  },
+  {
+    "persona": "authorized-user",
+    "authenticated": true,
+    "groups_overage": false,
+    "expected_principals": ["public", "user:synthetic-user-001"]
+  },
+  {
+    "persona": "authorized-group-member",
+    "authenticated": true,
+    "groups_overage": false,
+    "expected_principals": [
+      "group:platform-engineers",
+      "public",
+      "user:synthetic-group-user"
+    ]
+  },
+  {
+    "persona": "authorized-role-holder",
+    "authenticated": true,
+    "groups_overage": false,
+    "expected_principals": [
+      "public",
+      "role:AI.Agent.User",
+      "user:synthetic-role-user"
+    ]
+  },
+  {
+    "persona": "disallowed-user",
+    "authenticated": true,
+    "groups_overage": false,
+    "expected_principals": ["public", "user:synthetic-disallowed-user"]
+  },
+  {
+    "persona": "group-overage-user",
+    "authenticated": true,
+    "groups_overage": true,
+    "expected_principals": ["public", "user:synthetic-overage-user"]
+  }
+]

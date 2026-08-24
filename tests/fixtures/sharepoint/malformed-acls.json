@@ -1,0 +1,26 @@
+[
+  {
+    "scenario": "missing-acl",
+    "allowed_principals": null
+  },
+  {
+    "scenario": "empty-acl",
+    "allowed_principals": []
+  },
+  {
+    "scenario": "unknown-principal-kind",
+    "allowed_principals": ["everyone"]
+  },
+  {
+    "scenario": "empty-group-id",
+    "allowed_principals": ["group:"]
+  },
+  {
+    "scenario": "duplicate-principal",
+    "allowed_principals": ["public", "public"]
+  },
+  {
+    "scenario": "whitespace-in-principal",
+    "allowed_principals": ["group:platform engineers"]
+  }
+]

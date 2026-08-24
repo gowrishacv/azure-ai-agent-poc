@@ -20,13 +20,15 @@ class Principal:
     groups: tuple[str, ...]
     roles: tuple[str, ...]
     scopes: tuple[str, ...]
+    groups_overage: bool = False
 
     @property
     def search_principals(self) -> tuple[str, ...]:
         values = ["public"]
         if self.subject:
             values.append(f"user:{self.subject}")
-        values.extend(f"group:{group}" for group in self.groups)
+        if not self.groups_overage:
+            values.extend(f"group:{group}" for group in self.groups)
         values.extend(f"role:{role}" for role in self.roles)
         return tuple(sorted(set(values)))
 
@@ -38,6 +40,7 @@ ANONYMOUS_PRINCIPAL = Principal(
     groups=(),
     roles=(),
     scopes=(),
+    groups_overage=False,
 )
 
 
@@ -82,6 +85,13 @@ def _scope_values(claims: dict[str, Any]) -> tuple[str, ...]:
     )
 
 
+def _has_group_overage(claims: dict[str, Any]) -> bool:
+    claim_names = claims.get("_claim_names")
+    distributed_groups = isinstance(claim_names, dict) and "groups" in claim_names
+    has_groups = claims.get("hasgroups")
+    return distributed_groups or has_groups is True or has_groups == "true"
+
+
 async def authorize(request: Request, settings: Settings) -> Principal:
     if not settings.require_auth:
         request.state.principal = ANONYMOUS_PRINCIPAL
@@ -124,13 +134,15 @@ async def authorize(request: Request, settings: Settings) -> Principal:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Required delegated scope is missing",
         )
+    groups_overage = _has_group_overage(claims)
     principal = Principal(
         authenticated=True,
         subject=subject,
         tenant_id=str(claims.get("tid", settings.auth_tenant_id)),
-        groups=_claim_values(claims, "groups"),
+        groups=() if groups_overage else _claim_values(claims, "groups"),
         roles=roles,
         scopes=scopes,
+        groups_overage=groups_overage,
     )
     request.state.principal = principal
     return principal

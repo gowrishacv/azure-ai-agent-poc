@@ -1,0 +1,58 @@
+[
+  {
+    "scenario": "create-public-document",
+    "document": {
+      "id": "sp-policy-public-001",
+      "title": "Platform support hours",
+      "content": "The platform support window is documented for all employees.",
+      "source": "sharepoint://synthetic/sites/platform/policies/support-hours",
+      "source_version": "1",
+      "modified_at": "2026-08-24T08:00:00Z",
+      "allowed_principals": ["public"],
+      "is_deleted": false
+    },
+    "expected_principals": ["public"]
+  },
+  {
+    "scenario": "update-group-document",
+    "document": {
+      "id": "sp-policy-network-002",
+      "title": "Private connectivity standard",
+      "content": "The revised standard requires approved private connectivity patterns.",
+      "source": "sharepoint://synthetic/sites/platform/policies/private-connectivity",
+      "source_version": "2",
+      "modified_at": "2026-08-24T08:10:00Z",
+      "allowed_principals": ["role:AI.Agent.User", "group:platform-engineers"],
+      "is_deleted": false
+    },
+    "expected_principals": ["group:platform-engineers", "role:AI.Agent.User"]
+  },
+  {
+    "scenario": "permission-change-to-user-only",
+    "document": {
+      "id": "sp-runbook-incident-003",
+      "title": "Restricted incident runbook",
+      "content": "This synthetic runbook is restricted to one synthetic test identity.",
+      "source": "sharepoint://synthetic/sites/operations/runbooks/incident",
+      "source_version": "3",
+      "modified_at": "2026-08-24T08:20:00Z",
+      "allowed_principals": ["user:synthetic-user-001"],
+      "is_deleted": false
+    },
+    "expected_principals": ["user:synthetic-user-001"]
+  },
+  {
+    "scenario": "delete-document",
+    "document": {
+      "id": "sp-policy-retired-004",
+      "title": "Retired policy",
+      "content": "",
+      "source": "sharepoint://synthetic/sites/platform/policies/retired",
+      "source_version": "4",
+      "modified_at": "2026-08-24T08:30:00Z",
+      "allowed_principals": ["group:platform-engineers"],
+      "is_deleted": true
+    },
+    "expected_principals": ["group:platform-engineers"]
+  }
+]

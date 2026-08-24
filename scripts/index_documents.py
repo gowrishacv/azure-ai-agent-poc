@@ -3,7 +3,6 @@
 import argparse
 import json
 import os
-import re
 import time
 from pathlib import Path
 from typing import Any
@@ -23,9 +22,8 @@ from azure.search.documents.indexes.models import (
 )
 from openai import NotFoundError, OpenAI
 
+from app.knowledge.authorization import normalize_allowed_principals
 from app.openai_client import create_openai_client
-
-_SAFE_PRINCIPAL = re.compile(r"^(public|(?:user|group|role):[A-Za-z0-9._:@-]{1,160})$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,23 +75,12 @@ def create_embedding_with_retry(
 
 
 def validate_document_principals(document: dict[str, Any]) -> list[str]:
-    principals = document.get("allowed_principals")
-    if not isinstance(principals, list) or not principals:
-        raise ValueError(
-            f"Document {document.get('id', '<unknown>')!r} must define allowed_principals"
+    return list(
+        normalize_allowed_principals(
+            document.get("allowed_principals"),
+            document_id=str(document.get("id", "<unknown>")),
         )
-    normalized = sorted(
-        {
-            principal
-            for principal in principals
-            if isinstance(principal, str) and _SAFE_PRINCIPAL.fullmatch(principal)
-        }
     )
-    if len(normalized) != len(principals):
-        raise ValueError(
-            f"Document {document.get('id', '<unknown>')!r} contains an invalid principal"
-        )
-    return normalized
 
 
 def main() -> None:

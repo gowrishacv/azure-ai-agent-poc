@@ -14,6 +14,13 @@ scope/app-role validation, authorization-aware retrieval, correlation IDs, and
 privacy-safe answer feedback without introducing another Azure service. See
 [the Phase 2 guide](docs/phase-2.md).
 
+Phase 3 is being delivered behind local contracts and feature gates. Its first
+completed work packages add a source-neutral knowledge contract and a tested,
+fail-closed SharePoint Online connector contract with incremental checkpoints,
+ACL mapping, idempotent upserts, deletion reconciliation, and no real tenant
+data. See [SharePoint ingestion](docs/sharepoint-ingestion.md) and the
+[Phase 3 plan](tasks/plan.md).
+
 
 Suggested GitHub repository name: **`azure-ai-agent-poc`**
 
@@ -72,6 +79,8 @@ identities intact.
 
 ```text
 app/                    FastAPI RAG agent
+  connectors/           Source connector contracts and SharePoint mapping
+  knowledge/            Normalized document, ACL, and sync contracts
 data/                   Safe sample knowledge
 compliance/             GDPR/DORA mappings and human-review templates
 docs/                   Architecture, security, cost, and article material
@@ -265,6 +274,8 @@ gh repo create azure-ai-agent-poc --public --source=. --remote=origin --push
 - [Cost controls](docs/cost.md)
 - [Deployment runbook](docs/deployment.md)
 - [GDPR/DORA regulatory evidence](docs/regulatory-evidence.md)
+- [SharePoint ingestion and local testing](docs/sharepoint-ingestion.md)
+- [Phase 3 implementation plan](tasks/plan.md)
 - [Editable Visio reference diagrams](docs/diagrams/visio-build-guide.md)
 - [Architecture decisions](docs/decisions/adr-001-platform-shape.md)
 - [Medium and LinkedIn material](docs/article-kit.md)
