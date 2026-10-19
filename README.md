@@ -1,3 +1,16 @@
+
+Hi Miriam,
+
+Thank you for the clarification. I agree to the €100 correction.
+
+I agree that the €100 should be returned to the correct customer.
+
+Could you please confirm whether the amount will be automatically debited from my current account or adjusted against my loan? Do I need to take any action?
+
+Best regards,
+Gowrisha
+
+
 # Production-style Azure AI Agent POC
 
 ![Production-style Azure AI agent architecture](docs/images/azure-ai-agent-platform-architecture.png)
