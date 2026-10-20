@@ -1,28 +1,4 @@
-
-Hi Miriam,
-
-Thank you for the clarification. I agree to the €100 correction.
-
-I agree that the €100 should be returned to the correct customer.
-
-Could you please confirm whether the amount will be automatically debited from my current account or adjusted against my loan? Do I need to take any action?
-
-Best regards,
-Gowrisha
-
-
-Hallo Miriam,
-
-vielen Dank für die Klärung.
-
-Ich bin mit der Korrektur einverstanden und stimme selbstverständlich zu, dass die 100 € an den rechtmäßigen Kunden zurückgehen.
-
-Könntest du mir bitte noch sagen, ob der Betrag automatisch von meinem Girokonto abgebucht oder über mein Darlehenskonto verrechnet wird? Muss ich dafür noch etwas tun?
-
-Vielen Dank für deine Unterstützung!
-
-Viele Grüße
-Gowrisha
+Hi Lydia, the €100 was mistakenly credited to my loan account. The issue has now been clarified, and I’ve agreed to the refund. The Employee Banking team will handle the correction. Thank you for your support!
 
 # Production-style Azure AI Agent POC
 
