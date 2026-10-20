@@ -11,6 +11,19 @@ Best regards,
 Gowrisha
 
 
+Hallo Miriam,
+
+vielen Dank für die Klärung.
+
+Ich bin mit der Korrektur einverstanden und stimme selbstverständlich zu, dass die 100 € an den rechtmäßigen Kunden zurückgehen.
+
+Könntest du mir bitte noch sagen, ob der Betrag automatisch von meinem Girokonto abgebucht oder über mein Darlehenskonto verrechnet wird? Muss ich dafür noch etwas tun?
+
+Vielen Dank für deine Unterstützung!
+
+Viele Grüße
+Gowrisha
+
 # Production-style Azure AI Agent POC
 
 ![Production-style Azure AI agent architecture](docs/images/azure-ai-agent-platform-architecture.png)
